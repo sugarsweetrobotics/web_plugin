@@ -78,7 +78,7 @@ class RpcManager(xmlrpc.XMLRPC):
         res = WSB.getPackages()
         #res = '<package></package>'
         
-        return [True, str(res)]
+        return [True, (res)]
 
     def xmlrpc_start_name_service(self, port):
         res = WSB.startNamingService(port)

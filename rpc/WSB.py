@@ -61,7 +61,7 @@ def getRepositories():
     
 def getPackages():
     stdout = __check_output('package', 'list', '-l')
-    return yaml.load(stdout.read())
+    return stdout.read() #yaml.load(stdout.read())
 
 
     
