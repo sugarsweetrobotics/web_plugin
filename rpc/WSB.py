@@ -268,7 +268,7 @@ def updateSystemFile(pkg, filename, content):
     dir = __check_output('package', 'directory', pkg).read().strip()
     cwd = os.getcwd()
     os.chdir(dir)
-    sub = ['system', 'cat', '-f', filename, '"' + content + '"']
+    sub = ['system', 'cat', '-f', filename, content]
     p = __mgr_call(*sub)
     p.wait()
     os.chdir(cwd)
