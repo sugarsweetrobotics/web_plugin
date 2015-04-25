@@ -49,8 +49,8 @@ class RpcManager(xmlrpc.XMLRPC):
         return [True, res]
 
     # Repository Management
-    def xmlrpc_repositories(self):
-        res = WSB.getRepositories()
+    def xmlrpc_package_repositories(self):
+        res = WSB.getPackageRepositoryList()
         return [True, res]
 
     def xmlrpc_repository_package(self, pkg):
@@ -82,19 +82,18 @@ class RpcManager(xmlrpc.XMLRPC):
 
     def xmlrpc_start_name_service(self, port):
         res = WSB.startNamingService(port)
-        #res = '<package></package>'
         return [True, res.strip()]
 
     def xmlrpc_check_name_service(self):
         res = WSB.checkNamingService()
-        #res = '<package></package>'
         return [True, res.strip()]
 
     def xmlrpc_stop_name_service(self, port):
-        
         res = WSB.stopNamingService(port)
-        #res = '<package></package>'
-        
+        return [True, res.strip()]
+
+    def xmlrpc_tree_name_service(self, port):
+        res = WSB.treeNamingservice(port)
         return [True, res.strip()]
         
 
@@ -130,6 +129,34 @@ class RpcManager(xmlrpc.XMLRPC):
         res = WSB.deletePackage(pkg)
         return [True, res]
 
+
+
+    def xmlrpc_package_rtc(self, pkg, rtc):
+        res = WSB.getPackageRTC(pkg, rtc)
+        return [True, res]
+
+    def xmlrpc_rtcconf_list(self, pkg):
+        res = WSB.getRTCConfList(pkg)
+        return [True, res]
+
+
+
+    def xmlrpc_rts_profile(self, pkg, filename):
+        res = WSB.getRTSProfile(pkg, filename)
+        return [True, res]
+
+    def xmlrpc_system_update(self, pkg, filename, content):
+        res = WSB.updateSystemFile(pkg, filename, content)
+        return [True, res]
+    
+    def xmlrpc_system_copy(self, pkg, srcfilename, dstfilename):
+        res = WSB.copySystem(pkg, srcfilename, dstfilename)
+        return [True, res]
+    
+    def xmlrpc_system_delete(self, pkg, filename):
+        res = WSB.deleteSystem(pkg, filename)
+        return [True, res]
+
     def xmlrpc_system_list(self, pkg):
         res = WSB.getSystemList(pkg)
         return [True, res]
@@ -144,20 +171,4 @@ class RpcManager(xmlrpc.XMLRPC):
 
     def xmlrpc_system_run(self, pkg):
         res = WSB.runSystem(pkg)
-        return [True, res]
-
-    def xmlrpc_package_rtc(self, pkg, rtc):
-        res = WSB.getPackageRTC(pkg, rtc)
-        return [True, res]
-
-    def xmlrpc_rtcconf_list(self, pkg):
-        res = WSB.getRTCConfList(pkg)
-        return [True, res]
-
-    def xmlrpc_rts_profile(self, pkg, filename):
-        res = WSB.getRTSProfile(pkg, filename)
-        return [True, res]
-
-    def xmlrpc_system_update(self, pkg, filename, content):
-        res = WSB.updateSystemFile(pkg, filename, content)
         return [True, res]

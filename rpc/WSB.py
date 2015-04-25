@@ -34,13 +34,14 @@ def getVersion():
     return {'platform':platform_version, 
             'wasanbon':wasanbon_version}
 
-def getRepositoryPackage(pkg):
-    stdout = __check_output('repository', 'package', pkg)
-    return yaml.load(stdout.read())
+def getPackageRepositoryList():
+    stdout = __check_output('repository', 'list', '-l')
+    return stdout.read()
 
 def getRepositoryRTC(rtc):
     stdout = __check_output('repository', 'rtc', rtc)
     return yaml.load(stdout.read())
+
 
 def getStatus():
     stdout = __check_output('status')
@@ -62,8 +63,6 @@ def getRepositories():
 def getPackages():
     stdout = __check_output('package', 'list', '-l')
     return stdout.read() #yaml.load(stdout.read())
-
-
     
 def getRunningPackages():
     stdout = __check_output('package', 'list', '-r')
@@ -75,11 +74,11 @@ def getRunningPackages():
     return y
     
 def clonePackage(pkg):
-    stdout = __check_output('package', 'clone', pkg, '-v')
+    stdout = __check_output('repository', 'clone', pkg, '-v')
     return stdout.read()
 
 def deletePackage(pkg):
-    ret = __check_output('package', 'delete', pkg).read().strip()
+    ret = __check_output('package', 'delete', pkg, '-r').read().strip()
     return ret
 
 def getPackageAlternative(pkg, sub):
@@ -223,6 +222,12 @@ def checkNamingService():
     stdout = __check_output(*sub)
     res = stdout.read()
     return res
+
+def treeNamingService(port):
+    sub = ['nameserver', 'tree', str(port)]
+    stdout = __check_output(*sub)
+    res = stdout.read()
+    return res
     
 def buildRTC(pkg, rtc):
     dir = __check_output('package', 'directory', pkg).read().strip()
@@ -274,3 +279,22 @@ def updateSystemFile(pkg, filename, content):
     os.chdir(cwd)
     return p.stdout.read()
     
+def copySystem(pkg, src, dst):
+    dir = __check_output('package', 'directory', pkg).read().strip()
+    cwd = os.getcwd()
+    os.chdir(dir)
+    sub = ['system', 'copy', src, dst, '-f']
+    p = __mgr_call(*sub)
+    p.wait()
+    os.chdir(cwd)
+    return p.stdout.read()
+
+def deleteSystem(pkg, filename):
+    dir = __check_output('package', 'directory', pkg).read().strip()
+    cwd = os.getcwd()
+    os.chdir(dir)
+    sub = ['system', 'delete', filename, '-f']
+    p = __mgr_call(*sub)
+    p.wait()
+    os.chdir(cwd)
+    return p.stdout.read()

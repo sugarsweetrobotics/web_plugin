@@ -31,7 +31,7 @@ class Plugin(PluginFunction):
         options, argv = self.parse_args(args[:])
         verbose = options.verbose_flag # This is default option
         #force   = options.force_flag
-        work_directory = 'workspace'
+
         port = options.port
         if directory is None:
             directory = os.path.join(__path__[0], 'default')
@@ -39,6 +39,7 @@ class Plugin(PluginFunction):
             directory = os.path.join(os.getcwd(), directory)
             if not os.path.isdir(directory):
                 raise wasanbon.InvalidArgumentException()
+        work_directory = directory
 
         res = resource.ResourceManager(directory)
         res.putChild('RPC', manager.RpcManager(directory=work_directory));
