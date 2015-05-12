@@ -38,6 +38,16 @@ def getPackageRepositoryList():
     stdout = __check_output('repository', 'list', '-l')
     return stdout.read()
 
+def getRtcRepositoryList(pkg):
+    dir = __check_output('package', 'directory', pkg).read().strip()
+    cwd = os.getcwd()
+    os.chdir(dir)
+    sub = ['repository', 'list', '-l'] 
+    stdout = __check_mgr_output(*sub)
+    os.chdir(cwd)
+    return stdout.read()
+   
+
 def getRepositoryRTC(rtc):
     stdout = __check_output('repository', 'rtc', rtc)
     return yaml.load(stdout.read())
@@ -278,6 +288,26 @@ def updateSystemFile(pkg, filename, content):
     p.wait()
     os.chdir(cwd)
     return p.stdout.read()
+
+def updateRTCProfile(pkg, rtc, content):
+    dir = __check_output('package', 'directory', pkg).read().strip()
+    cwd = os.getcwd()
+    os.chdir(dir)
+    sub = ['rtcprofile', 'cat', rtc, content]
+    p = __mgr_call(*sub)
+    p.wait()
+    os.chdir(cwd)
+    return p.stdout.read()
+
+def syncRTCProfile(pkg, rtc):
+    dir = __check_output('package', 'directory', pkg).read().strip()
+    cwd = os.getcwd()
+    os.chdir(dir)
+    sub = ['rtc', 'update_profile', rtc]
+    p = __mgr_call(*sub)
+    p.wait()
+    os.chdir(cwd)
+    return 'Success'
     
 def copySystem(pkg, src, dst):
     dir = __check_output('package', 'directory', pkg).read().strip()

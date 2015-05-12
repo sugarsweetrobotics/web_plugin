@@ -53,6 +53,10 @@ class RpcManager(xmlrpc.XMLRPC):
         res = WSB.getPackageRepositoryList()
         return [True, res]
 
+    def xmlrpc_rtc_repositories(self, pkg):
+        res = WSB.getRtcRepositoryList(pkg)
+        return [True, res]
+
     def xmlrpc_repository_package(self, pkg):
         res = WSB.getRepositoryPackage(pkg)
         return [True, res]
@@ -147,6 +151,14 @@ class RpcManager(xmlrpc.XMLRPC):
 
     def xmlrpc_system_update(self, pkg, filename, content):
         res = WSB.updateSystemFile(pkg, filename, content)
+        return [True, res]
+
+    def xmlrpc_rtcprofile_update(self, pkg, rtc, content):
+        res = WSB.updateRTCProfile(pkg, rtc, content)
+        return [True, res]
+
+    def xmlrpc_rtcprofile_sync(self, pkg, rtc):
+        res = WSB.syncRTCProfile(pkg, rtc)
         return [True, res]
     
     def xmlrpc_system_copy(self, pkg, srcfilename, dstfilename):
