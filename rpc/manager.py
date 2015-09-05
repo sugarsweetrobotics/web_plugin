@@ -65,6 +65,18 @@ class RpcManager(xmlrpc.XMLRPC):
         res = WSB.getRepositoryRTC(rtc)
         return [True, res]
     
+    def xmlrpc_rtc_repository_pull(self, package, rtc):
+        res = WSB.pullRTCRepository(package, rtc)
+        return [True, res]
+
+    def xmlrpc_rtc_repository_push(self, package, rtc):
+        res = WSB.pushRTCRepository(package, rtc)
+        return [True, res]
+
+    def xmlrpc_rtc_repository_commit(self, package, rtc, comment):
+        res = WSB.commitRTCRepository(package, rtc, comment)
+        return [True, res]
+
     def render_OPTIONS(self, request):    
         request.setHeader('Access-Control-Allow-Origin', '*')
         request.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')        
@@ -97,7 +109,7 @@ class RpcManager(xmlrpc.XMLRPC):
         return [True, res.strip()]
 
     def xmlrpc_tree_name_service(self, port):
-        res = WSB.treeNamingservice(port)
+        res = WSB.treeNamingService(port)
         return [True, res.strip()]
         
 

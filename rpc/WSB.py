@@ -1,5 +1,5 @@
 
-import os, subprocess, yaml, types, time
+import os, subprocess, yaml, types, time, sys
 import wasanbon
 
 
@@ -7,7 +7,6 @@ def __check_output(*args, **kwargs):
     cmd = ['wasanbon-admin.py']
     for arg in args:
         cmd.append(arg)
-
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     p.wait()
     return p.stdout
@@ -24,6 +23,7 @@ def __mgr_call(*args, **kwargs):
     cmd = ['./mgr.py']
     for arg in args:
         cmd.append(arg)
+    sys.stdout.write('mgr_call: %s\n' % str(cmd))
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     return p
 
@@ -39,13 +39,22 @@ def getPackageRepositoryList():
     return stdout.read()
 
 def getRtcRepositoryList(pkg):
-    dir = __check_output('package', 'directory', pkg).read().strip()
+    try:
+        dir = __check_output('package', 'directory', pkg).read().strip()
+    except:
+        return ""
+
     cwd = os.getcwd()
     os.chdir(dir)
     sub = ['repository', 'list', '-l'] 
-    stdout = __check_mgr_output(*sub)
+    strval = ""
+    try:
+        stdout = __check_mgr_output(*sub)
+        strval = stdout.read()
+    except:
+        pass
     os.chdir(cwd)
-    return stdout.read()
+    return strval
    
 
 def getRepositoryRTC(rtc):
@@ -92,26 +101,34 @@ def deletePackage(pkg):
     return ret
 
 def getPackageAlternative(pkg, sub):
+
     dir = __check_output('package', 'directory', pkg).read().strip()
+
     cwd = os.getcwd()
     os.chdir(dir)
-    sub = ['-a'] 
-    stdout = __check_mgr_output(*sub)
+    try:
+        sub = ['-a'] 
+        stdout = __check_mgr_output(*sub)
+        str = stdout.read().split()
+    except:
+        str = ""
+
     os.chdir(cwd)
-    str = stdout.read()
-    return str.split()
+    return str
 
 def getRTCList(pkg):
     dir = __check_output('package', 'directory', pkg).read().strip()
     cwd = os.getcwd()
     os.chdir(dir)
-    sub = ['rtc', 'list', '-d'] 
-    stdout = __check_mgr_output(*sub)
-    os.chdir(cwd)
-    str = stdout.read()
-    return str.strip()
-    #d = yaml.load(str)
-    #return d
+    try:
+        sub = ['rtc', 'list', '-d'] 
+        stdout = __check_mgr_output(*sub)
+        str = stdout.read().strip()
+    except:
+        str = ""
+    os.chdir(cwd)    
+    return str
+
 
 def getRTCLongList(pkg):
     dir = __check_output('package', 'directory', pkg).read().strip()
@@ -234,7 +251,7 @@ def checkNamingService():
     return res
 
 def treeNamingService(port):
-    sub = ['nameserver', 'tree', str(port)]
+    sub = ['nameserver', 'tree', '-d']
     stdout = __check_output(*sub)
     res = stdout.read()
     return res
@@ -328,3 +345,38 @@ def deleteSystem(pkg, filename):
     p.wait()
     os.chdir(cwd)
     return p.stdout.read()
+
+def pullRTCRepository(pkg, rtc):
+    dir = __check_output('package', 'directory', pkg).read().strip()
+    cwd = os.getcwd()
+    os.chdir(dir)
+    sub = ['repository', 'pull', rtc, '-v']
+    p = __mgr_call(*sub)
+    p.wait()
+    os.chdir(cwd)
+    str = p.stdout.read().strip()
+    sys.stdout.write('---- output ----')
+    sys.stdout.write(str + '\n')
+    sys.stdout.write('----------------')    
+    return str
+
+def pushRTCRepository(pkg, rtc):
+    dir = __check_output('package', 'directory', pkg).read().strip()
+    cwd = os.getcwd()
+    os.chdir(dir)
+    sub = ['repository', 'push', rtc, '-v']
+    p = __mgr_call(*sub)
+    p.wait()
+    os.chdir(cwd)
+    return p.stdout.read()
+
+def commitRTCRepository(pkg, rtc, comment):
+    dir = __check_output('package', 'directory', pkg).read().strip()
+    cwd = os.getcwd()
+    os.chdir(dir)
+    sub = ['repository', 'commit', rtc, comment]
+    p = __mgr_call(*sub)
+    p.wait()
+    os.chdir(cwd)
+    return p.stdout.read()
+
