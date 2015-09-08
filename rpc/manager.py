@@ -145,8 +145,6 @@ class RpcManager(xmlrpc.XMLRPC):
         res = WSB.deletePackage(pkg)
         return [True, res]
 
-
-
     def xmlrpc_package_rtc(self, pkg, rtc):
         res = WSB.getPackageRTC(pkg, rtc)
         return [True, res]
@@ -154,8 +152,6 @@ class RpcManager(xmlrpc.XMLRPC):
     def xmlrpc_rtcconf_list(self, pkg):
         res = WSB.getRTCConfList(pkg)
         return [True, res]
-
-
 
     def xmlrpc_rts_profile(self, pkg, filename):
         res = WSB.getRTSProfile(pkg, filename)
