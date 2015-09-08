@@ -7,24 +7,28 @@ def __check_output(*args, **kwargs):
     cmd = ['wasanbon-admin.py']
     for arg in args:
         cmd.append(arg)
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     p.wait()
     return p.stdout
 
 def __check_mgr_output(*args, **kwargs):
     cmd = ['./mgr.py']
+    if sys.platform == 'win32':
+        cmd = ['mgr.py']
     for arg in args:
         cmd.append(arg)
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     p.wait()
     return p.stdout
 
 def __mgr_call(*args, **kwargs):
     cmd = ['./mgr.py']
+    if sys.platform == 'win32':
+        cmd = ['mgr.py']
     for arg in args:
         cmd.append(arg)
     sys.stdout.write('mgr_call: %s\n' % str(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     return p
 
 def getVersion():
