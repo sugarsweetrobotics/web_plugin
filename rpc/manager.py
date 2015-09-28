@@ -196,3 +196,20 @@ class RpcManager(xmlrpc.XMLRPC):
     def xmlrpc_system_run(self, pkg):
         res = WSB.runSystem(pkg)
         return [True, res]
+
+    def xmlrpc_activate_rtc(self, fullpath):
+        res = WSB.activateRTC(fullpath)
+        return [True, res]
+
+    def xmlrpc_deactivate_rtc(self, fullpath):
+        res = WSB.deactivateRTC(fullpath)
+        return [True, res]
+
+    def xmlrpc_reset_rtc(self, fullpath):
+        res = WSB.resetRTC(fullpath)
+        return [True, res]
+
+
+    def xmlrpc_configure_rtc(self, rtc, confset, confname, confvalue):
+        res = WSB.configureRTC(rtc, confset, confname, confvalue)
+        return [True, res]

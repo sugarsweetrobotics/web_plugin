@@ -7,6 +7,7 @@ def __check_output(*args, **kwargs):
     cmd = ['wasanbon-admin.py']
     for arg in args:
         cmd.append(arg)
+    sys.stdout.write('check_output: %s\n' % str(cmd))
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     p.wait()
     return p.stdout
@@ -380,3 +381,18 @@ def commitRTCRepository(pkg, rtc, comment):
     os.chdir(cwd)
     return p.stdout.read()
 
+def activateRTC(fullpath):
+    stdout = __check_output('nameserver', 'activate_rtc', fullpath)
+    return stdout.read()
+    
+def deactivateRTC(fullpath):
+    stdout = __check_output('nameserver', 'deactivate_rtc', fullpath)
+    return stdout.read()
+    
+def resetRTC(fullpath):
+    stdout = __check_output('nameserver', 'reset_rtc', fullpath)
+    return stdout.read()
+    
+def configureRTC(rtc, confset, confname, confvalue):
+    stdout = __check_output('nameserver', 'configure', rtc, '-s', confset, confname, confvalue)
+    return stdout.read()
