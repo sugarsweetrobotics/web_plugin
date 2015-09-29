@@ -4,10 +4,13 @@ import wasanbon
 
 def __call(*args, **kwargs):
     cmd = ['wasanbon-admin.py']
+    shell = False
     for arg in args:
         cmd.append(arg)
+    if sys.platform == 'win32':
+        shell = True
     sys.stdout.write('check_output: %s\n' % str(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
     #p.wait()
     #return p.stdout
     #std_out_data, std_err_data = p.communicate()
@@ -16,10 +19,13 @@ def __call(*args, **kwargs):
 
 def __check_output(*args, **kwargs):
     cmd = ['wasanbon-admin.py']
+    shell = False
     for arg in args:
         cmd.append(arg)
+    if sys.platform == 'win32':
+        shell = True
     sys.stdout.write('check_output: %s\n' % str(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
     #p.wait()
     #return p.stdout
     std_out_data, std_err_data = p.communicate()
@@ -27,24 +33,28 @@ def __check_output(*args, **kwargs):
 
 def __check_mgr_output(*args, **kwargs):
     cmd = ['./mgr.py']
+    shell = False
     if sys.platform == 'win32':
         cmd = ['mgr.py']
+        shell = True
     for arg in args:
         cmd.append(arg)
     sys.stdout.write('check_mgr_output: %s\n' % str(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
     #p.wait()
     std_out_data, std_err_data = p.communicate()
     return std_out_data
 
 def __mgr_call(*args, **kwargs):
     cmd = ['./mgr.py']
+    shell = False
     if sys.platform == 'win32':
         cmd = ['mgr.py']
+        shell = True
     for arg in args:
         cmd.append(arg)
     sys.stdout.write('mgr_call: %s\n' % str(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
     return p
 
 def getVersion():
@@ -56,6 +66,7 @@ def getVersion():
 
 def getPackageRepositoryList():
     stdout = __check_output('repository', 'list', '-l')
+    print stdout
     return stdout
 
 def getRtcRepositoryList(pkg):
@@ -70,7 +81,7 @@ def getRtcRepositoryList(pkg):
     strval = ""
     try:
         stdout = __check_mgr_output(*sub)
-        strval = stdout.read()
+        strval = stdout
     except:
         pass
     os.chdir(cwd)
@@ -102,7 +113,12 @@ def getRepositories():
 def getPackages():
     stdout = __check_output('package', 'list', '-l')
     return stdout #yaml.load(stdout.read())
+
+def getRunningPackages():
+    stdout = __check_output('package', 'list', '-l', '-r')
+    return stdout #yaml.load(stdout.read())
     
+"""
 def getRunningPackages():
     stdout = __check_output('package', 'list', '-r')
     y = yaml.load(stdout)
@@ -111,6 +127,7 @@ def getRunningPackages():
     elif type(y) != types.ListType:
         return [y]
     return y
+"""
     
 def clonePackage(pkg):
     stdout = __check_output('repository', 'clone', pkg, '-v')
@@ -243,12 +260,17 @@ def terminateSystem(pkg):
     timeout = 15
     while True:
         running = getRunningPackages()
-        print 'running-', running
+        print 'Running Packages are ', running
         if running:
             if pkg in running:
+                sys.stdout.write(' pkg(%s) is still running\n' % pkg)
                 continue
             else:
+                sys.stdout.write(' pkg(%s) stopped\n' % pkg)
                 return 0
+        else:
+            sys.stdout.write(' No pkgs are running.\n')
+            return 0
         diff_time = time.time() - start_time
         if diff_time > timeout:
             return -2
@@ -412,16 +434,34 @@ def commitRTCRepository(pkg, rtc, comment):
 
 def activateRTC(fullpath):
     stdout = __check_output('nameserver', 'activate_rtc', fullpath)
-    return stdout.read()
+    return stdout
     
 def deactivateRTC(fullpath):
     stdout = __check_output('nameserver', 'deactivate_rtc', fullpath)
-    return stdout.read()
+    return stdout
     
 def resetRTC(fullpath):
     stdout = __check_output('nameserver', 'reset_rtc', fullpath)
-    return stdout.read()
+    return stdout
     
 def configureRTC(rtc, confset, confname, confvalue):
     stdout = __check_output('nameserver', 'configure', rtc, '-s', confset, confname, confvalue)
-    return stdout.read()
+    return stdout
+
+def listConnectablePairs(nss):
+    stdout = __check_output('nameserver', 'list_connectable_pair') 
+    return stdout
+    
+def connectPorts(port0, port1, param):
+    params = param.split(',')
+    cmd = ['nameserver', 'connect', port0, port1]
+    for p in params:
+        if len(p) > 0:
+            cmd = cmd + ['-p', p]
+    stdout = __check_output(*cmd)
+    return stdout
+
+def disconnectPorts(port0, port1):
+    cmd = ['nameserver', 'disconnect', port0, port1]
+    stdout = __check_output(*cmd)
+    return stdout

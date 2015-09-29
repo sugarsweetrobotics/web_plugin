@@ -96,6 +96,12 @@ class RpcManager(xmlrpc.XMLRPC):
         
         return [True, (res)]
 
+    def xmlrpc_running_packages(self, request):
+        res = WSB.getRunningPackages()
+        #res = '<package></package>'
+        
+        return [True, (res)]
+
     def xmlrpc_start_name_service(self, port):
         res = WSB.startNamingService(port)
         return [True, res.strip()]
@@ -208,4 +214,16 @@ class RpcManager(xmlrpc.XMLRPC):
 
     def xmlrpc_configure_rtc(self, rtc, confset, confname, confvalue):
         res = WSB.configureRTC(rtc, confset, confname, confvalue)
+        return [True, res]
+
+    def xmlrpc_list_connectable_pairs(self, nss):
+        res = WSB.listConnectablePairs(nss)
+        return [True, res]
+        
+    def xmlrpc_connect_ports(self, port0, port1, param):
+        res = WSB.connectPorts(port0, port1, param)
+        return [True, res]
+
+    def xmlrpc_disconnect_ports(self, port0, port1):
+        res = WSB.disconnectPorts(port0, port1)
         return [True, res]
