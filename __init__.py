@@ -34,7 +34,7 @@ class Plugin(PluginFunction):
 
         port = options.port
         if directory is None:
-            directory = os.path.join(__path__[0], 'default')
+            directory = os.path.join(__path__[0], 'web')
         elif not os.path.isdir(directory):
             directory = os.path.join(os.getcwd(), directory)
             if not os.path.isdir(directory):
