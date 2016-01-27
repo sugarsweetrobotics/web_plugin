@@ -301,6 +301,13 @@ def treeNamingService(port):
     stdout = __check_output(*sub)
     #res = stdout.read()
     return stdout
+
+def treeNamingServiceEx(host, port):
+    sub = ['nameserver', 'tree', '-d', '-p', str(port), '-u', host]
+    stdout = __check_output(*sub)
+    #res = stdout.read()
+    return stdout
+
     
 def buildRTC(pkg, rtc):
     dir = __check_output('package', 'directory', pkg).strip()
@@ -449,7 +456,7 @@ def configureRTC(rtc, confset, confname, confvalue):
     return stdout
 
 def listConnectablePairs(nss):
-    stdout = __check_output('nameserver', 'list_connectable_pair') 
+    stdout = __check_output('nameserver', 'list_connectable_pair', '-n', nss) 
     return stdout
     
 def connectPorts(port0, port1, param):
@@ -465,3 +472,34 @@ def disconnectPorts(port0, port1):
     cmd = ['nameserver', 'disconnect', port0, port1]
     stdout = __check_output(*cmd)
     return stdout
+
+def sendCode(code):
+    code_dir = 'codes'
+    if not os.path.isdir(code_dir):
+        os.mkdir(code_dir)
+    codeName = 'code' + wasanbon.timestampstr() + '.py'
+    fileName = os.path.join(code_dir, codeName)
+    f = open(fileName, 'w')
+    f.write(code)
+    f.close()
+    return fileName
+
+def startCode(filename):
+    args = {}
+    args['env'] = os.environ.copy()
+    #args['preexec_fn'] = None if sys.platform == 'win32' else disable_sig
+    args['stdout'] = subprocess.PIPE
+    args['stdin'] = subprocess.PIPE
+    if sys.platform == 'win32':
+        args['creationflags'] = 512
+    if sys.platform == 'win32':
+        for path in sys.path:
+            if os.path.isfile(os.path.join(path, 'python.exe')):
+                exe = os.path.join(path, 'python.exe')
+                cmd = [exe, filename]
+                break
+    else:
+        cmd = ['python', filename]
+    p = subprocess.Popen(cmd, **args)
+    return p.pid
+    

@@ -117,6 +117,10 @@ class RpcManager(xmlrpc.XMLRPC):
     def xmlrpc_tree_name_service(self, port):
         res = WSB.treeNamingService(port)
         return [True, res.strip()]
+
+    def xmlrpc_tree_name_service_ex(self, host, port):
+        res = WSB.treeNamingServiceEx(host, port)
+        return [True, res.strip()]
         
 
     def xmlrpc_running_packages(self):
@@ -226,4 +230,25 @@ class RpcManager(xmlrpc.XMLRPC):
 
     def xmlrpc_disconnect_ports(self, port0, port1):
         res = WSB.disconnectPorts(port0, port1)
+        return [True, res]
+
+
+    def xmlrpc_misc_send_code(self, code):
+        res = WSB.sendCode(code)
+        return [True, res]
+
+    def xmlrpc_misc_start_code(self, filename):
+        res = WSB.startCode(filename)
+        return [True, res]
+
+    def xmlrpc_misc_kill_code(self, filename):
+        res = WSB.killCode(self, filename)
+        return [True, res]
+
+    def xmlrpc_misc_read_stdout(self, filename):
+        res = WSB.readStdout(filename)
+        return [True, res]
+
+    def xmlrpc_misc_communicate(self, filename):
+        res = WSB.communicate(filename)
         return [True, res]
