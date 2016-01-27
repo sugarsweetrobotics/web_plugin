@@ -77,9 +77,10 @@ class Plugin(PluginFunction):
             os.mkdir(appdist)
         package_names = []
         for f in os.listdir(appdist):
-            path = os.path.join(packdir, f)
-            if 'index.html' in os.listdir(path):
-                package_names.append(f)
+            path = os.path.join(appdist, f)
+            if os.path.isdir(path):
+                if 'index.html' in os.listdir(path):
+                    package_names.append(f)
         return package_names
 
 

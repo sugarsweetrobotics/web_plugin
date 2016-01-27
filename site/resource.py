@@ -28,6 +28,22 @@ class Page(rend.Page):
 class ResourceManager(rend.Page):
     isLeaf = True
     __except_dir = ['js', 'index.css']
+
+    _index_files = []
+
+    def _search_index_html(self, dir):
+        for root, dirs, files in os.walk(dir):
+            if 'index.html' in files or 'index.htm' in files:
+                self._index_files.append(root)
+        
+        index_file = ''
+        max_count = 1000
+        for index in self._index_files:
+            if index.count(os.sep) < max_count:
+                index_file = index
+                max_count = index.count(os.sep)
+        return index_file
+
     def __init__(self, static_dir='static'):
         rend.Page.__init__(self)
         self.static_dir = static_dir
@@ -36,6 +52,9 @@ class ResourceManager(rend.Page):
             if f.endswith('~'):
                 continue
             path = os.path.join(static_dir, f)
+            index_path = self._search_index_html(path)
+            print path
+            print index_path
             self.putChild(f, static.File(path))
             if not f in self.__except_dir:                
                 self._index += """
@@ -44,7 +63,7 @@ class ResourceManager(rend.Page):
 <h1>%s</h1>
 </li>
 </a>
-""" % (f, f)
+""" % (index_path[len(static_dir)+1:], f)
 
         self._index += """
   </ul>
