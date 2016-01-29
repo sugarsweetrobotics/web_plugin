@@ -136,7 +136,6 @@ class Plugin(PluginFunction):
         if app_name.endswith('.zip'):
             app_name = app_name[:-4]
 
-
         appdist = options.target
         if appdist is None:
             appdist = os.path.join(wasanbon.home_path, 'web', 'applications')
@@ -150,7 +149,11 @@ class Plugin(PluginFunction):
         package_names = self.get_packages(package_dir)
         application_names = self.get_applications(appdist)
 
-
+        style_file = 'index.css'
+        style_file_path = os.path.join(appdist, style_file)
+        if not os.path.isfile(style_file_path):
+            import shutil
+            shutil.copy(os.path.join(__path__[0], 'styles', style_file), style_file_path)
         if not os.path.isfile(package_path):
             sys.stdout.write('# Can not find package.\n')
 
@@ -168,7 +171,10 @@ class Plugin(PluginFunction):
                 sys.stdout.write('# Add -f option to force installing.\n')
                 return -1
             
-            
+            sys.stdout.write('# Removing installed %s application\n' % app_name)
+            import shutil
+            #os.removedirs(os.path.join(appdist, app_name))
+            shutil.rmtree(os.path.join(appdist, app_name))
 
         sys.stdout.write('# Installing %s.\n' % (app_name))
 
