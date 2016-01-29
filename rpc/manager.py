@@ -1,8 +1,105 @@
-import os
+import os, types, traceback, sys
 from twisted.web import server, xmlrpc, resource
 from twisted.web.xmlrpc import withRequest
 
 import WSB
+
+
+class PluginObject:
+    def __init__(self, name):
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+
+class MiscPlugin(PluginObject):
+    
+    def __init__(self):
+        PluginObject.__init__(self, 'misc')
+    
+    def echo(self, msg):
+        sys.stdout.write('misc_echo(%s)\n' % msg)
+        return [True, msg]
+
+    def version(self):
+        res = WSB.getVersion()
+        return [True, res]
+
+    def status(self):
+        res = WSB.getStatus()
+        return [True, res]
+
+
+class ProcessesPlugin(PluginObject):
+    
+    def __init__(self):
+        PluginObject.__init__(self, 'processes')
+    
+    def run(self, filename, args):
+        import subprocess
+        if filename.endswith('.py'):
+            cmd = ['python', filename]
+            try:
+                p = subprocess.Popen(cmd)
+            except:
+                traceback.print_exc()
+                return [False, '']
+            return [True, '']
+        return [False, 'Unknown File Extension.']
+
+
+class FilesPlugin(PluginObject):
+    
+    def __init__(self):
+        PluginObject.__init__(self, 'files')
+
+    def list_directory(self, path):
+        sys.stdout.write('files_list_directory(%s)\n' % path)
+        try:
+            return [True, os.listdir(path)]
+        except:
+            traceback.print_exc()
+        return [False, []]
+
+    def change_directory(self, path):
+        try:
+            os.chdir(path)
+            return [True, os.getcwd()]
+        except:
+            traceback.print_exc()
+        return [False, '']
+      
+    def print_working_directory(self):
+        try:
+            return [True, os.getcwd()]
+        except:
+            traceback.print_exc()
+        return [False, '']
+
+    def upload_file(self, filename, file_content):
+        try:
+            open(filename, 'w').write(file_content)
+            return [True, filename]
+        except:
+            traceback.print_exc()
+        return [False, '']
+
+    def download_file(self, filename):
+        try:
+            return [True, open(filename, 'r').read()]
+        except:
+            traceback.print_exc()
+        return [False, '']
+
+    def delete_file(self, filename):
+        try:
+            sys.stdout.write('delete_file %s\n' % filename)
+            os.remove(filename)
+            return [True, '']
+        except:
+            traceback.print_exc()
+        return [False, '']
 
 class RpcManager(xmlrpc.XMLRPC):
     """
@@ -12,6 +109,11 @@ class RpcManager(xmlrpc.XMLRPC):
 
     def __init__(self, directory=None):
         xmlrpc.XMLRPC.__init__(self, allowNone=True)
+
+        self.add_plugin(MiscPlugin())
+        self.add_plugin(FilesPlugin())
+        self.add_plugin(ProcessesPlugin())
+
         if not directory:
             directory = os.getcwd()
         self.directory = directory
@@ -20,27 +122,32 @@ class RpcManager(xmlrpc.XMLRPC):
 
         self.old_directory = os.getcwd()
 
+
+    def add_plugin(self, plugin_obj):
+        for atr_name in dir(plugin_obj):
+            attribute = getattr(plugin_obj, atr_name)
+            if atr_name.startswith('_'):
+                continue
+
+            if type(attribute) == types.MethodType:
+                func_name = 'xmlrpc_' + plugin_obj.name + '_' + atr_name
+                print func_name
+                setattr(self, func_name, attribute)
+
     def pre_rpc(self):
         os.chdir(self.directory)
 
     def post_rpc(self):
         os.chdir(self.old_directory)
         
-    def xmlrpc_echo(self, x):
-
-        return [True, x]
-
-    def xmlrpc_version(self):
-        res = WSB.getVersion()
-        return [True, res]
+    #def xmlrpc_echo(self, x):
+    #
+    #    return [True, x]
 
     def xmlrpc_get_package_alter(self, pkg, sub):
         res = WSB.getPackageAlternative(pkg, sub)
         return [True, res]
         
-    def xmlrpc_status(self):
-        res = WSB.getStatus()
-        return [True, res]
 
     def xmlrpc_clone_package(self, pkg):
         self.pre_rpc()
