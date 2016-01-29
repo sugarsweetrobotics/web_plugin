@@ -66,7 +66,7 @@ class Plugin(PluginFunction):
         """ List packages """
         #packdir = os.path.join(__path__[0], directory)
         if not os.path.isdir(directory):
-            os.mkdir(directory)
+            os.makedirs(directory)
         package_names = []
         for f in os.listdir(directory):
             if f.endswith('.zip'):
@@ -78,7 +78,7 @@ class Plugin(PluginFunction):
         """ List applications """
 
         if not os.path.isdir(appdist):
-            os.mkdir(appdist)
+            os.makedirs(appdist)
         package_names = []
         for f in os.listdir(appdist):
 
