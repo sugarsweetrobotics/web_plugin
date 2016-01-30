@@ -3,103 +3,11 @@ from twisted.web import server, xmlrpc, resource
 from twisted.web.xmlrpc import withRequest
 
 import WSB
+from plugin import *
+from misc import *
+from processes import *
+from files import *
 
-
-class PluginObject:
-    def __init__(self, name):
-        self._name = name
-
-    @property
-    def name(self):
-        return self._name
-
-class MiscPlugin(PluginObject):
-    
-    def __init__(self):
-        PluginObject.__init__(self, 'misc')
-    
-    def echo(self, msg):
-        sys.stdout.write('misc_echo(%s)\n' % msg)
-        return [True, msg]
-
-    def version(self):
-        res = WSB.getVersion()
-        return [True, res]
-
-    def status(self):
-        res = WSB.getStatus()
-        return [True, res]
-
-
-class ProcessesPlugin(PluginObject):
-    
-    def __init__(self):
-        PluginObject.__init__(self, 'processes')
-    
-    def run(self, filename, args):
-        import subprocess
-        if filename.endswith('.py'):
-            cmd = ['python', filename]
-            try:
-                p = subprocess.Popen(cmd)
-            except:
-                traceback.print_exc()
-                return [False, '']
-            return [True, '']
-        return [False, 'Unknown File Extension.']
-
-
-class FilesPlugin(PluginObject):
-    
-    def __init__(self):
-        PluginObject.__init__(self, 'files')
-
-    def list_directory(self, path):
-        sys.stdout.write('files_list_directory(%s)\n' % path)
-        try:
-            return [True, os.listdir(path)]
-        except:
-            traceback.print_exc()
-        return [False, []]
-
-    def change_directory(self, path):
-        try:
-            os.chdir(path)
-            return [True, os.getcwd()]
-        except:
-            traceback.print_exc()
-        return [False, '']
-      
-    def print_working_directory(self):
-        try:
-            return [True, os.getcwd()]
-        except:
-            traceback.print_exc()
-        return [False, '']
-
-    def upload_file(self, filename, file_content):
-        try:
-            open(filename, 'w').write(file_content)
-            return [True, filename]
-        except:
-            traceback.print_exc()
-        return [False, '']
-
-    def download_file(self, filename):
-        try:
-            return [True, open(filename, 'r').read()]
-        except:
-            traceback.print_exc()
-        return [False, '']
-
-    def delete_file(self, filename):
-        try:
-            sys.stdout.write('delete_file %s\n' % filename)
-            os.remove(filename)
-            return [True, '']
-        except:
-            traceback.print_exc()
-        return [False, '']
 
 class RpcManager(xmlrpc.XMLRPC):
     """

@@ -4,6 +4,7 @@ from nevow import static, rend, loaders
 from nevow import tags as T
 from parser import Parser
 
+_version = '0.1.0'
 CSS_DIR='static/css'
 HTML_DIR='static/html'
 JS_DIR='static/js'
@@ -84,10 +85,11 @@ class ResourceManager(rend.Page):
   <div id="top">
     <h1>wasanbon web server</h1>
     <p>Framework for Robotic Technology System</p>
+    <p>Version : %s</p>
   </div>
   <div id="container">
   <ul class="plugin_items">
-"""
+""" % _version
 
     def parse(self):
         for file in os.listdir(self.static_dir):
