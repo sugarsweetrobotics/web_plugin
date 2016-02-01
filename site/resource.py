@@ -73,7 +73,7 @@ class ResourceManager(rend.Page):
             self.putChild(f, static.File(path))
             if not f in self.__except_dir:                
                 self._index += """
-<a href="%s" target="new">
+<a href="%s" target="_blank">
 <li class="plugin_item">
 <h1>%s</h1>
 </li>
