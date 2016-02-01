@@ -7,7 +7,8 @@ from plugin import *
 from misc import *
 from processes import *
 from files import *
-
+from rtc import *
+from admin import *
 
 class RpcManager(xmlrpc.XMLRPC):
     """
@@ -21,7 +22,8 @@ class RpcManager(xmlrpc.XMLRPC):
         self.add_plugin(MiscPlugin())
         self.add_plugin(FilesPlugin())
         self.add_plugin(ProcessesPlugin())
-
+        self.add_plugin(RtcPlugin())
+        self.add_plugin(AdminPlugin())
         if not directory:
             directory = os.getcwd()
         self.directory = directory
@@ -57,20 +59,9 @@ class RpcManager(xmlrpc.XMLRPC):
         return [True, res]
         
 
-    def xmlrpc_clone_package(self, pkg):
-        self.pre_rpc()
-        res = WSB.clonePackage(pkg)
-        self.post_rpc()
-        return [True, res]
 
     # Repository Management
-    def xmlrpc_package_repositories(self):
-        res = WSB.getPackageRepositoryList()
-        return [True, res]
 
-    def xmlrpc_rtc_repositories(self, pkg):
-        res = WSB.getRtcRepositoryList(pkg)
-        return [True, res]
 
     def xmlrpc_repository_package(self, pkg):
         res = WSB.getRepositoryPackage(pkg)
@@ -80,18 +71,6 @@ class RpcManager(xmlrpc.XMLRPC):
         res = WSB.getRepositoryRTC(rtc)
         return [True, res]
     
-    def xmlrpc_rtc_repository_pull(self, package, rtc):
-        res = WSB.pullRTCRepository(package, rtc)
-        return [True, res]
-
-    def xmlrpc_rtc_repository_push(self, package, rtc):
-        res = WSB.pushRTCRepository(package, rtc)
-        return [True, res]
-
-    def xmlrpc_rtc_repository_commit(self, package, rtc, comment):
-        res = WSB.commitRTCRepository(package, rtc, comment)
-        return [True, res]
-
     def render_OPTIONS(self, request):    
         request.setHeader('Access-Control-Allow-Origin', '*')
         request.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')        
@@ -99,17 +78,6 @@ class RpcManager(xmlrpc.XMLRPC):
         return ""
 
     # Package Management
-    @withRequest
-    def xmlrpc_packages(self, request):
-        request.setHeader('Access-Control-Allow-Origin', '*')
-        request.setHeader('Access-Control-Allow-Methods', 'POST, GET')
-        request.setHeader('Access-Control-Allow-Headers', 'x-prototype-version,x-requested-with')
-        request.setHeader('Access-Control-Max-Age', 2520) # 42 hours
-        
-        res = WSB.getPackages()
-        #res = '<package></package>'
-        
-        return [True, (res)]
 
     def xmlrpc_running_packages(self, request):
         res = WSB.getRunningPackages()
@@ -142,17 +110,6 @@ class RpcManager(xmlrpc.XMLRPC):
         res = WSB.getRunningPackages()
         return [True, res]
 
-    def xmlrpc_rtc_longlist(self,pkg):
-        res = WSB.getRTCLongList(pkg)
-        return [True, res]
-
-    def xmlrpc_rtc_list(self,pkg):
-        res = WSB.getRTCList(pkg)
-        return [True, res]
-
-    def xmlrpc_rtc_profile(self, pkg, rtc):
-        res = WSB.getRTCProfile(pkg, rtc)
-        return [True, res]
 
     def xmlrpc_build_rtc(self, pkg, rtc):
         result, stdout = WSB.buildRTC(pkg, rtc)
@@ -166,9 +123,6 @@ class RpcManager(xmlrpc.XMLRPC):
         result, stdout = WSB.deleteRTC(pkg, rtc)
         return [True, result, stdout]
 
-    def xmlrpc_delete_package(self, pkg):
-        res = WSB.deletePackage(pkg)
-        return [True, res]
 
     def xmlrpc_package_rtc(self, pkg, rtc):
         res = WSB.getPackageRTC(pkg, rtc)

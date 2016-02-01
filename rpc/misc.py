@@ -12,6 +12,7 @@ class MiscPlugin(PluginObject):
         sys.stdout.write('misc_echo(%s)\n' % msg)
         return [True, msg]
 
+
     def version(self):
         res = WSB.getVersion()
         return [True, res]

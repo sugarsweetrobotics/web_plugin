@@ -134,7 +134,7 @@ def clonePackage(pkg):
     return stdout
 
 def deletePackage(pkg):
-    ret = __check_output('package', 'delete', pkg, '-r').read().strip()
+    ret = __check_output('package', 'delete', pkg, '-r').strip()
     return ret
 
 def getPackageAlternative(pkg, sub):
