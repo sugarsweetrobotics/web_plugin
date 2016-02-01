@@ -450,6 +450,10 @@ def deactivateRTC(fullpath):
 def resetRTC(fullpath):
     stdout = __check_output('nameserver', 'reset_rtc', fullpath)
     return stdout
+
+def exitRTC(fullpath):
+    stdout = __check_output('nameserver', 'exit_rtc', fullpath)
+    return stdout
     
 def configureRTC(rtc, confset, confname, confvalue):
     stdout = __check_output('nameserver', 'configure', rtc, '-s', confset, confname, confvalue)

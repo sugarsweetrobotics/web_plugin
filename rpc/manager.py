@@ -184,6 +184,10 @@ class RpcManager(xmlrpc.XMLRPC):
         res = WSB.resetRTC(fullpath)
         return [True, res]
 
+    def xmlrpc_exit_rtc(self, fullpath):
+        res = WSB.exitRTC(fullpath)
+        return [True, res]
+
 
     def xmlrpc_configure_rtc(self, rtc, confset, confname, confvalue):
         res = WSB.configureRTC(rtc, confset, confname, confvalue)

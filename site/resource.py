@@ -34,9 +34,14 @@ class ResourceManager(rend.Page):
 
     def _search_index_html(self, dir):
         for root, dirs, files in os.walk(dir):
+            #print ' - Parsing %s' % root
             if 'index.html' in files or 'index.htm' in files:
+                print ' -- Found.'
                 self._index_files.append(root)
         
+        print ' -- Files are'
+        for p in self._index_files:
+            print ' --- %s' % p
         index_file = ''
         max_count = 1000
         for index in self._index_files:
@@ -47,15 +52,24 @@ class ResourceManager(rend.Page):
 
     def __init__(self, static_dir='static'):
         rend.Page.__init__(self)
+        self._index_files = []
         self.static_dir = static_dir
+        print 'ResourceManager.__init__(%s)' % static_dir
         #self.putChild('index.css', static.File(os.path.join(static_dir, 'index.css')))
         for f in os.listdir(static_dir):
             if f.endswith('~'):
                 continue
             path = os.path.join(static_dir, f)
+            
+
+            if not os.path.isdir(path):
+                self.putChild(f, static.File(path))
+                continue
+            print ' - Now Parsing : %s' % path
+            self._index_files = []
             index_path = self._search_index_html(path)
-            print path
             print index_path
+            #print 'Application: ', index_path
             self.putChild(f, static.File(path))
             if not f in self.__except_dir:                
                 self._index += """
