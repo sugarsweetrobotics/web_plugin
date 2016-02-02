@@ -6,6 +6,7 @@ import WSB
 from plugin import *
 from misc import *
 from processes import *
+from nameservice import *
 from files import *
 from rtc import *
 from admin import *
@@ -24,6 +25,8 @@ class RpcManager(xmlrpc.XMLRPC):
         self.add_plugin(ProcessesPlugin())
         self.add_plugin(RtcPlugin())
         self.add_plugin(AdminPlugin())
+        self.add_plugin(NameServicePlugin())
+
         if not directory:
             directory = os.getcwd()
         self.directory = directory
@@ -84,27 +87,6 @@ class RpcManager(xmlrpc.XMLRPC):
         #res = '<package></package>'
         
         return [True, (res)]
-
-    def xmlrpc_start_name_service(self, port):
-        res = WSB.startNamingService(port)
-        return [True, res.strip()]
-
-    def xmlrpc_check_name_service(self):
-        res = WSB.checkNamingService()
-        return [True, res.strip()]
-
-    def xmlrpc_stop_name_service(self, port):
-        res = WSB.stopNamingService(port)
-        return [True, res.strip()]
-
-    def xmlrpc_tree_name_service(self, port):
-        res = WSB.treeNamingService(port)
-        return [True, res.strip()]
-
-    def xmlrpc_tree_name_service_ex(self, host, port):
-        res = WSB.treeNamingServiceEx(host, port)
-        return [True, res.strip()]
-        
 
     def xmlrpc_running_packages(self):
         res = WSB.getRunningPackages()
@@ -171,40 +153,6 @@ class RpcManager(xmlrpc.XMLRPC):
     def xmlrpc_system_run(self, pkg):
         res = WSB.runSystem(pkg)
         return [True, res]
-
-    def xmlrpc_activate_rtc(self, fullpath):
-        res = WSB.activateRTC(fullpath)
-        return [True, res]
-
-    def xmlrpc_deactivate_rtc(self, fullpath):
-        res = WSB.deactivateRTC(fullpath)
-        return [True, res]
-
-    def xmlrpc_reset_rtc(self, fullpath):
-        res = WSB.resetRTC(fullpath)
-        return [True, res]
-
-    def xmlrpc_exit_rtc(self, fullpath):
-        res = WSB.exitRTC(fullpath)
-        return [True, res]
-
-
-    def xmlrpc_configure_rtc(self, rtc, confset, confname, confvalue):
-        res = WSB.configureRTC(rtc, confset, confname, confvalue)
-        return [True, res]
-
-    def xmlrpc_list_connectable_pairs(self, nss):
-        res = WSB.listConnectablePairs(nss)
-        return [True, res]
-        
-    def xmlrpc_connect_ports(self, port0, port1, param):
-        res = WSB.connectPorts(port0, port1, param)
-        return [True, res]
-
-    def xmlrpc_disconnect_ports(self, port0, port1):
-        res = WSB.disconnectPorts(port0, port1)
-        return [True, res]
-
 
     def xmlrpc_misc_send_code(self, code):
         res = WSB.sendCode(code)
