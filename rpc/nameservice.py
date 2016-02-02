@@ -42,7 +42,7 @@ class NameServicePlugin(PluginObject):
         res = WSB.startNamingService(port)
         return [True, res.strip()]
 
-    def check_runngin(self):
+    def check_running(self):
         res = WSB.checkNamingService()
         return [True, res.strip()]
 
