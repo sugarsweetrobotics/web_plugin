@@ -14,7 +14,7 @@ class FilesPlugin(PluginObject):
         :rtype: tupple
         :return: tupple(Successflag, Message, List of directory)
         """
-        self.debug('files_list_directory(%s)' % path)
+        self.debug('list_directory(%s)' % path)
         try:
             return self.return_value(True, '', os.listdir(path))
         except Exception, ex:

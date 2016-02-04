@@ -1,68 +1,8 @@
 
 import os, subprocess, yaml, types, time, sys
 import wasanbon
+from plugin import *
 
-def __call(*args, **kwargs):
-    cmd = ['wasanbon-admin.py']
-    shell = False
-    for arg in args:
-        cmd.append(arg)
-    if sys.platform == 'win32':
-        shell = True
-    sys.stdout.write('check_output: %s\n' % str(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
-    #p.wait()
-    #return p.stdout
-    #std_out_data, std_err_data = p.communicate()
-    return p #std_out_data
-
-
-def __check_output(*args, **kwargs):
-    cmd = ['wasanbon-admin.py']
-    shell = False
-    for arg in args:
-        cmd.append(arg)
-    if sys.platform == 'win32':
-        shell = True
-    sys.stdout.write('check_output: %s\n' % str(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
-    #p.wait()
-    #return p.stdout
-    std_out_data, std_err_data = p.communicate()
-    return std_out_data
-
-def __check_mgr_output(*args, **kwargs):
-    cmd = ['./mgr.py']
-    shell = False
-    if sys.platform == 'win32':
-        cmd = ['mgr.py']
-        shell = True
-    for arg in args:
-        cmd.append(arg)
-    sys.stdout.write('check_mgr_output: %s\n' % str(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
-    #p.wait()
-    std_out_data, std_err_data = p.communicate()
-    return std_out_data
-
-def __mgr_call(*args, **kwargs):
-    cmd = ['./mgr.py']
-    shell = False
-    if sys.platform == 'win32':
-        cmd = ['mgr.py']
-        shell = True
-    for arg in args:
-        cmd.append(arg)
-    sys.stdout.write('mgr_call: %s\n' % str(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
-    return p
-
-def getVersion():
-    stdout = __check_output('version')
-    platform_version = stdout.split('\n')[0].split()[-1]
-    wasanbon_version = stdout.split('\n')[1].split()[-1]
-    return {'platform':platform_version, 
-            'wasanbon':wasanbon_version}
 
 def getPackageRepositoryList():
     stdout = __check_output('repository', 'list', '-l')
@@ -93,18 +33,6 @@ def getRepositoryRTC(rtc):
     return yaml.load(stdout)
 
 
-def getStatus():
-    stdout = __check_output('status')
-    dic = {}
-    for line in stdout.split('\n'):
-        if len(line.strip()) == 0:
-            continue
-        if line.strip().startswith('- Checking'):
-            continue
-        name = line.split()[1]
-        status = line.split()[-1]
-        dic[name] = status
-    return dic
     
 def getRepositories():
     stdout = __check_output('repository', 'status', '-l')
