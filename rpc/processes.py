@@ -9,13 +9,15 @@ class ProcessesPlugin(PluginObject):
         PluginObject.__init__(self, 'processes')
     
     def run(self, filename, args):
+        self.debug('run(%s, %s)' % (filename, str(args)))
         import subprocess
         if filename.endswith('.py'):
             cmd = ['python', filename]
             try:
                 p = subprocess.Popen(cmd)
-            except:
+                return self.return_value(True, '', ('python', p.pid))
+            except Exception, ex:
                 traceback.print_exc()
-                return [False, '']
-            return [True, '']
-        return [False, 'Unknown File Extension.']
+                return self.return_value(False, 'Exception: %s' % str(ex), [])
+
+        return self.return_value(False, 'Unknown File Extension.', [])
