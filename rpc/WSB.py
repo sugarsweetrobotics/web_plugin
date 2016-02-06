@@ -367,43 +367,6 @@ def commitRTCRepository(pkg, rtc, comment):
     os.chdir(cwd)
     return std_out_data.strip()
 
-def activateRTC(fullpath):
-    stdout = __check_output('nameserver', 'activate_rtc', fullpath)
-    return stdout
-    
-def deactivateRTC(fullpath):
-    stdout = __check_output('nameserver', 'deactivate_rtc', fullpath)
-    return stdout
-    
-def resetRTC(fullpath):
-    stdout = __check_output('nameserver', 'reset_rtc', fullpath)
-    return stdout
-
-def exitRTC(fullpath):
-    stdout = __check_output('nameserver', 'exit_rtc', fullpath)
-    return stdout
-    
-def configureRTC(rtc, confset, confname, confvalue):
-    stdout = __check_output('nameserver', 'configure', rtc, '-s', confset, confname, confvalue)
-    return stdout
-
-def listConnectablePairs(nss):
-    stdout = __check_output('nameserver', 'list_connectable_pair', '-n', nss) 
-    return stdout
-    
-def connectPorts(port0, port1, param):
-    params = param.split(',')
-    cmd = ['nameserver', 'connect', port0, port1]
-    for p in params:
-        if len(p) > 0:
-            cmd = cmd + ['-p', p]
-    stdout = __check_output(*cmd)
-    return stdout
-
-def disconnectPorts(port0, port1):
-    cmd = ['nameserver', 'disconnect', port0, port1]
-    stdout = __check_output(*cmd)
-    return stdout
 
 def sendCode(code):
     code_dir = 'codes'
