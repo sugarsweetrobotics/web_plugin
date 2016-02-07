@@ -61,7 +61,7 @@ def check_mgr_output(*args, **kwargs):
     std_out_data, std_err_data = p.communicate()
     return std_out_data
 
-def __mgr_call(*args, **kwargs):
+def mgr_call(*args, **kwargs):
     cmd = ['./mgr.py']
     shell = False
     if sys.platform == 'win32':

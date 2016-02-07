@@ -4,11 +4,6 @@ import wasanbon
 from plugin import *
 
 
-def getPackageRepositoryList():
-    stdout = __check_output('repository', 'list', '-l')
-    print stdout
-    return stdout
-
 def getRtcRepositoryList(pkg):
     try:
         dir = __check_output('package', 'directory', pkg).strip()
@@ -37,33 +32,10 @@ def getRepositoryRTC(rtc):
 def getRepositories():
     stdout = __check_output('repository', 'status', '-l')
     return yaml.load(stdout)
-    
-def getPackages():
-    stdout = __check_output('package', 'list', '-l')
-    return stdout #yaml.load(stdout.read())
 
 def getRunningPackages():
     stdout = __check_output('package', 'list', '-l', '-r')
     return stdout #yaml.load(stdout.read())
-    
-"""
-def getRunningPackages():
-    stdout = __check_output('package', 'list', '-r')
-    y = yaml.load(stdout)
-    if not y:
-        return None
-    elif type(y) != types.ListType:
-        return [y]
-    return y
-"""
-    
-def clonePackage(pkg):
-    stdout = __check_output('repository', 'clone', pkg, '-v')
-    return stdout
-
-def deletePackage(pkg):
-    ret = __check_output('package', 'delete', pkg, '-r').strip()
-    return ret
 
 def getPackageAlternative(pkg, sub):
 
@@ -80,20 +52,6 @@ def getPackageAlternative(pkg, sub):
         str = ""
 
     os.chdir(cwd)
-    return str
-
-def getRTCList(pkg):
-    dir = __check_output('package', 'directory', pkg).strip()
-    cwd = os.getcwd()
-    os.chdir(dir)
-    try:
-        sub = ['rtc', 'list', '-d'] 
-        stdout = __check_mgr_output(*sub)
-        #str = stdout.read().strip()
-        str = stdout
-    except:
-        str = ""
-    os.chdir(cwd)    
     return str
 
 
@@ -203,60 +161,7 @@ def terminateSystem(pkg):
         if diff_time > timeout:
             return -2
     return -1
-
-def startNamingService(port):
-    sub = ['nameserver', 'start', '-p', str(port)] 
-    #stdout = __check_output(*sub)
-    __call(*sub)
-    #res = stdout.read()
-    #print res
-    return "Success"
-
-def stopNamingService(port):
-    sub = ['nameserver', 'stop', '-p', str(port)] 
-    stdout = __check_output(*sub)
-    #res = stdout.read()
-    return stdout
-
-def checkNamingService():
-    sub = ['nameserver', 'check_running']
-    stdout = __check_output(*sub)
-    #res = stdout.read()
-    return stdout
-
-def treeNamingService(port):
-    sub = ['nameserver', 'tree', '-d']
-    stdout = __check_output(*sub)
-    #res = stdout.read()
-    return stdout
-
-def treeNamingServiceEx(host, port):
-    sub = ['nameserver', 'tree', '-d', '-p', str(port), '-u', host]
-    stdout = __check_output(*sub)
-    #res = stdout.read()
-    return stdout
-
     
-def buildRTC(pkg, rtc):
-    dir = __check_output('package', 'directory', pkg).strip()
-    cwd = os.getcwd()
-    os.chdir(dir)
-    sub = ['rtc', 'build', rtc, '-v'] 
-    p = __mgr_call(*sub)
-    std_out_data, std_err_data = p.communicate()
-    os.chdir(cwd)
-    return p.returncode, std_out_data
-
-
-def cleanRTC(pkg, rtc):
-    dir = __check_output('package', 'directory', pkg).strip()
-    cwd = os.getcwd()
-    os.chdir(dir)
-    sub = ['rtc', 'clean', rtc, '-v'] 
-    p = __mgr_call(*sub)
-    std_out_data, std_err_data = p.communicate()
-    os.chdir(cwd)
-    return p.returncode, std_out_data
 
 def deleteRTC(pkg, rtc):
     dir = __check_output('package', 'directory', pkg).strip()
