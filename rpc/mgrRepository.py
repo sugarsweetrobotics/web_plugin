@@ -36,8 +36,10 @@ class MgrRepositoryPlugin(PluginObject):
         def _clone():
             try:
                 sub = ['repository', 'clone', rtc] 
-                stdout = check_mgr_output(*sub)
-                return self.return_value(True, '', stdout)
+                p = mgr_call(*sub)
+                stdout, stderr = p.communicate()
+                #stdout = check_mgr_output(*sub)
+                return self.return_value(True, '', (p.returncode, stdout))
             except Exception, ex:
                 traceback.print_exc()
                 return self.return_value(False, 'Exception: %s' % str(ex), [])

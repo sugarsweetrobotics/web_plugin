@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, traceback
 import WSB
 from plugin import *
 
@@ -89,4 +89,57 @@ class FilesPlugin(PluginObject):
             return self.return_value(False, 'Exception: %s' % str(ex), [])
         pass
 
+    def rename_file(self, src, dst):
+        self.debug('rename_file(%s, %s)' % (src, dst))
+        try:
+            import shutil
+            shutil.move(src, dst)
+            return (True, '', dst)
+        except Exception, ex:
+            traceback.print_exc()
+            return self.return_value(False, 'Exception: %s' % str(ex), [])
+        pass
+
+    def is_file(self, path):
+        self.debug('is_file(%s)' % path)
+        try:
+            return (True, '', os.path.isfile(path))
+        except Exception, ex:
+            traceback.print_exc()
+            return self.return_value(False, 'Exception: %s' % str(ex), [])
+        pass
+
+    def is_dir(self, path):
+        self.debug('is_dir(%s)' % path)
+        try:
+            return (True, '', os.path.isdir(path))
+        except Exception, ex:
+            traceback.print_exc()
+            return self.return_value(False, 'Exception: %s' % str(ex), [])
+        pass
+
+
+    def make_dir(self, path):
+        self.debug('make_dir(%s)' % path)
+        try:
+            os.mkdir(path)
+            return (True, '', path)
+        except Exception, ex:
+            traceback.print_exc()
+            return self.return_value(False, 'Exception: %s' % str(ex), [])
+        pass
+
+    def remove_dir(self, path, recursive):
+        self.debug('remove_dir(%s, %s)' % (path, str(recursive)))
+        try:
+            if recursive:
+                import shutil
+                shutil.rmtree(path)
+            else:
+                os.rmdir(path)
+            return (True, '', path)
+        except Exception, ex:
+            traceback.print_exc()
+            return self.return_value(False, 'Exception: %s' % str(ex), [])
+        pass
 
