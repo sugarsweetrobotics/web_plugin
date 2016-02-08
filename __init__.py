@@ -87,6 +87,13 @@ class Plugin(PluginFunction):
                 package_names.append(f)
         return package_names
 
+    @manifest
+    def package_dir(self, args):
+        #self.parser.add_option('-d', '--directory', help='Set Static File Directory Tree Root', default=None, dest='directory')
+        options, argv = self.parse_args(args[:])
+        verbose = options.verbose_flag # This is default option
+        sys.stdout.write('%s\n' % os.path.join(__path__[0], 'packages'))
+        return 0
 
     @manifest
     def packages(self, args):
@@ -191,4 +198,35 @@ class Plugin(PluginFunction):
 
 
         os.chdir(cwd)
+        return 0
+
+    @manifest
+    def uninstall(self, args):
+        """ uninstall application """
+        options, argv = self.parse_args(args[:], self._print_alternative_packages)
+        verbose = options.verbose_flag # This is default option
+        
+        package_dir = os.path.join(__path__[0], 'packages')
+        appdist = os.path.join(wasanbon.home_path, 'web', 'applications')
+
+        wasanbon.arg_check(argv, 4)
+
+        app_name = argv[3]
+
+        package_names = self.get_packages(package_dir)
+        application_names = self.get_applications(appdist)
+
+        style_file = 'index.css'
+        style_file_path = os.path.join(appdist, style_file)
+        if not os.path.isfile(style_file_path):
+            import shutil
+            shutil.copy(os.path.join(__path__[0], 'styles', style_file), style_file_path)
+
+        if app_name in application_names:
+            sys.stdout.write('''# Removing '%s'.\n''' % (app_name))
+            
+            import shutil
+            #os.removedirs(os.path.join(appdist, app_name))
+            shutil.rmtree(os.path.join(appdist, app_name))
+
         return 0

@@ -8,6 +8,7 @@ from misc import *
 from processes import *
 from nameservice import *
 from files import *
+from setting import *
 from mgrRtc import *
 from mgrRepository import *
 from adminPackage import *
@@ -23,6 +24,7 @@ class RpcManager(xmlrpc.XMLRPC):
         xmlrpc.XMLRPC.__init__(self, allowNone=True)
 
         self.add_plugin(MiscPlugin())
+        self.add_plugin(SettingPlugin())
         self.add_plugin(FilesPlugin())
         self.add_plugin(ProcessesPlugin())
         self.add_plugin(MgrRtcPlugin())
