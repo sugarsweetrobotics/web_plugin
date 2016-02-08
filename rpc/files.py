@@ -76,3 +76,17 @@ class FilesPlugin(PluginObject):
             traceback.print_exc()
             return self.return_value(False, 'Exception: %s' % str(ex), [])
         pass
+
+
+    def copy_file(self, src, dst):
+        self.debug('copy_file(%s, %s)' % (src, dst))
+        try:
+            import shutil
+            shutil.copy2(src, dst)
+            return (True, '', dst)
+        except Exception, ex:
+            traceback.print_exc()
+            return self.return_value(False, 'Exception: %s' % str(ex), [])
+        pass
+
+

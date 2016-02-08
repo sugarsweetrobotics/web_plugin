@@ -10,7 +10,8 @@ from nameservice import *
 from files import *
 from mgrRtc import *
 from mgrRepository import *
-from admin import *
+from adminPackage import *
+from adminRepository import *
 
 class RpcManager(xmlrpc.XMLRPC):
     """
@@ -26,7 +27,8 @@ class RpcManager(xmlrpc.XMLRPC):
         self.add_plugin(ProcessesPlugin())
         self.add_plugin(MgrRtcPlugin())
         self.add_plugin(MgrRepositoryPlugin())
-        self.add_plugin(AdminPlugin())
+        self.add_plugin(AdminPackagePlugin())
+        self.add_plugin(AdminRepositoryPlugin())
         self.add_plugin(NameServicePlugin())
 
         if not directory:

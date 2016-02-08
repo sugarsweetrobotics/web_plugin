@@ -163,15 +163,6 @@ def terminateSystem(pkg):
     return -1
     
 
-def deleteRTC(pkg, rtc):
-    dir = __check_output('package', 'directory', pkg).strip()
-    cwd = os.getcwd()
-    os.chdir(dir)
-    sub = ['rtc', 'delete', rtc, '-v'] 
-    p = __mgr_call(*sub)
-    std_out_data, std_err_data = p.communicate()
-    os.chdir(cwd)
-    return p.returncode, std_out_data
 
 
 def getRTCConfList(pkg):

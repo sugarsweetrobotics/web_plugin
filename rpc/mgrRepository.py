@@ -2,10 +2,10 @@ import os, sys, traceback
 import WSB
 from plugin import *
 
-class MgrRtcPlugin(PluginObject):
+class MgrRepositoryPlugin(PluginObject):
     
     def __init__(self):
-        PluginObject.__init__(self, 'mgrRtc')
+        PluginObject.__init__(self, 'mgrRepository')
 
     def chdir_pkg_and_do(self, pkg, function):
         """ Change directory to pkg. When pkg not found, error raised. """
@@ -22,59 +22,26 @@ class MgrRtcPlugin(PluginObject):
         self.debug('list(%s)' % pkg)
         def _list():
             try:
-                sub = ['rtc', 'list', '-d'] 
+                sub = ['repository', 'list', '-l'] 
                 stdout = check_mgr_output(*sub)
                 return self.return_value(True, '', stdout)
             except Exception, ex:
                 traceback.print_exc()
                 return self.return_value(False, 'Exception: %s' % str(ex), [])
-
         return self.chdir_pkg_and_do(pkg, _list)
 
-    def delete(self, pkg, rtc):
-        """ Deleting RT-components $rtc in package $pkg """
-        self.debug('delete(%s, %s)' % (pkg, rtc))
-        def _delete():
+    def clone(self, pkg, rtc):
+        """ Cloning RT-component $rtc in package $pkg """
+        self.debug('clone(%s, %s)' % (pkg, rtc))
+        def _clone():
             try:
-                sub = ['rtc', 'delete', rtc, '-v'] 
+                sub = ['repository', 'clone', rtc] 
                 stdout = check_mgr_output(*sub)
                 return self.return_value(True, '', stdout)
             except Exception, ex:
                 traceback.print_exc()
                 return self.return_value(False, 'Exception: %s' % str(ex), [])
-
-        return self.chdir_pkg_and_do(pkg, _delete)
-
-    def build(self, pkg, rtc):
-        """ Building RT-component $rtc in package $pkg """
-        self.debug('build(%s, %s)' % (pkg, rtc))
-        def _build():
-            try:
-                sub = ['rtc', 'build', rtc, '-v'] 
-                p = mgr_call(*sub)
-                stdout, stderr = p.communicate()
-                return self.return_value(True, stdout, (p.returncode, stdout))
-            except Exception, ex:
-                traceback.print_exc()
-                return self.return_value(False, 'Exception: %s' % str(ex), [])
-        return self.chdir_pkg_and_do(pkg, _build)
-
-    def clean(self, pkg, rtc):
-        """ cleaning up the build products of RT-component $rtc in package $pkg """
-        self.debug('clean(%s, %s)' % (pkg, rtc))
-        def _clean():
-            try:
-                sub = ['rtc', 'clean', rtc, '-v'] 
-                p = mgr_call(*sub)
-                stdout, stderr = p.communicate()
-                return self.return_value(True, stdout, (p.returncode, stdout))
-            except Exception, ex:
-                traceback.print_exc()
-                return self.return_value(False, 'Exception: %s' % str(ex), [])
-        return self.chdir_pkg_and_do(pkg, _clean)
-                
-
-
+        return self.chdir_pkg_and_do(pkg, _clone)
 
     def repositories(self, pkg):
         res = WSB.getRtcRepositoryList(pkg)
