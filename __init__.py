@@ -2,6 +2,11 @@ import os, sys
 import wasanbon
 from wasanbon.core.plugins import PluginFunction, manifest
 
+
+
+
+
+
 class Plugin(PluginFunction):
     """ Plugin for Web interface """
     def __init__(self):
@@ -18,6 +23,15 @@ class Plugin(PluginFunction):
     def depends(self):
         return ['admin.environment']
 
+    def sigusr1_isr(self, signal, stack):
+        from twisted.internet import reactor
+
+    def sigint_isr(self, signal, stack):
+        sys.stdout.write(' - SIGINT captured.\n')
+        from twisted.internet import reactor
+        reactor.stop()
+    
+
     @manifest
     def start(self, args):
         """ Start Web Server """
@@ -28,10 +42,18 @@ class Plugin(PluginFunction):
         directory = options.directory
         port = options.port
 
+        pid_dir = directory
         if directory is None:
             directory = os.path.join(wasanbon.home_path, 'web', 'applications')
-        
+            pid_dir = os.path.join(wasanbon.home_path, 'web')
+
         sys.stdout.write('# Starting Web Application in %s\n' % directory)
+
+        pid_file = os.path.join(pid_dir, 'pid')
+        if os.path.isfile(pid_file):
+            os.remove(pid_file)
+
+        open(pid_file, 'w').write(str(os.getpid()))
 
         from nevow import appserver
         from twisted.web import server
@@ -46,6 +68,10 @@ class Plugin(PluginFunction):
         #force   = options.force_flag
 
 
+        import signal
+        signal.signal(signal.SIGUSR1, self.sigusr1_isr) # SIGUSR1 = 30
+        signal.signal(signal.SIGINT, self.sigint_isr) # SIGUSR1 = 30
+
         #if directory is None:
         #    directory = os.path.join(__path__[0], 'www')
         if not os.path.isdir(directory):
@@ -54,13 +80,65 @@ class Plugin(PluginFunction):
                 raise wasanbon.InvalidArgumentException()
 
         work_directory = directory
-        res = resource.ResourceManager(directory)
-        res.putChild('RPC', manager.RpcManager(directory=work_directory));
-        site = appserver.NevowSite(res)
-        reactor.listenTCP(port, site)
+        self.res = resource.ResourceManager(directory)
+        self.res.putChild('RPC', manager.RpcManager(directory=work_directory));
+        self.site = appserver.NevowSite(self.res)
+        reactor.listenTCP(port, self.site)
         reactor.run()
+        sys.stdout.write(' - Web reactor stopped.\n')
+        os.remove(pid_file)
         return 0
 
+    @manifest
+    def stop(self, args):
+        """ Stop Web Server """
+        self.parser.add_option('-d', '--directory', help='Set Static File Directory Tree Root', default=None, dest='directory')
+        self.parser.add_option('-p', '--port', help='Set TCP Port number for web server', type='int', default=8000, dest='port')
+        options, argv = self.parse_args(args[:])
+        verbose = options.verbose_flag # This is default option
+        directory = options.directory
+        port = options.port
+
+        pid_dir = directory
+        if directory is None:
+            directory = os.path.join(wasanbon.home_path, 'web', 'applications')
+            pid_dir = os.path.join(wasanbon.home_path, 'web')
+
+        sys.stdout.write('# Stopping Web Application in %s\n' % directory)
+
+        pid_file = os.path.join(pid_dir, 'pid')
+        if not os.path.isfile(pid_file):
+            sys.stdout.write(' - Server not found.\n')
+            return -1
+        import signal
+        pid = int(open(pid_file, 'r').read())
+        os.kill(pid, signal.SIGINT)
+
+        return 0
+        
+
+    @manifest
+    def restart(self, args):
+        """ Restarting Web Server """
+        self.parser.add_option('-d', '--directory', help='Set Static File Directory Tree Root', default=None, dest='directory')
+        self.parser.add_option('-p', '--port', help='Set TCP Port number for web server', type='int', default=8000, dest='port')
+        self.parser.add_option('-t', '--timedelay', help='Delay time for stopping server', type='int', default=0, dest='delay')
+        options, argv = self.parse_args(args[:])
+        verbose = options.verbose_flag # This is default option
+        directory = options.directory
+        delay = options.delay
+        port = options.port
+
+        def _restart():
+            self.stop(args)
+            import time
+            time.sleep(0.5)
+            self.start(args)
+
+        _restart()
+
+        return 0
+        
 
     def get_packages(self, directory='packages'):
         """ List packages """
