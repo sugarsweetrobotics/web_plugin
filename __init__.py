@@ -172,7 +172,7 @@ class Plugin(PluginFunction):
         verbose = options.verbose_flag # This is default option
         sys.stdout.write('%s\n' % os.path.join(__path__[0], 'packages'))
         return 0
-
+    
     @manifest
     def packages(self, args):
         self.parser.add_option('-d', '--directory', help='Set Static File Directory Tree Root', default=None, dest='directory')
