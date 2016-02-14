@@ -2,11 +2,6 @@ import os, sys
 import wasanbon
 from wasanbon.core.plugins import PluginFunction, manifest
 
-
-
-
-
-
 class Plugin(PluginFunction):
     """ Plugin for Web interface """
     def __init__(self):
@@ -307,4 +302,79 @@ class Plugin(PluginFunction):
             #os.removedirs(os.path.join(appdist, app_name))
             shutil.rmtree(os.path.join(appdist, app_name))
 
+        return 0
+    
+    @manifest
+    def generate_dart_app(self, args):
+        """ Start Web Server """
+        #self.parser.add_option('-d', '--directory', help='Set Static File Directory Tree Root', default=None, dest='directory')
+        #self.parser.add_option('-p', '--port', help='Set TCP Port number for web server', type='int', default=8000, dest='port')
+        options, argv = self.parse_args(args[:])
+        verbose = options.verbose_flag # This is default option
+        template_dir = os.path.join(__path__[0], 'app_template')
+        app_template_name = "App Template"
+        app_template_module_name = app_template_name.replace(' ', '-').lower()
+        app_template_module_file_name = app_template_module_name.replace('-', '_')
+        app_template_strip_name = "AppTemplate"
+        app_template_dir_name = app_template_strip_name.lower()
+
+        wasanbon.arg_check(argv, 4)
+        app_name = argv[3]
+        app_module_name = app_name.replace(' ', '-').lower()
+        app_module_file_name = app_module_name.replace('-', '_')
+        app_strip_name = ""
+        for s in app_name.split(' '):
+            app_strip_name = app_strip_name + s
+        app_dir_name = app_strip_name.lower()
+            
+        sys.stdout.write('$APP_NAME       = %s\n' % app_name)
+        sys.stdout.write('$APP_MODULE_NAME= %s\n' % app_module_name)
+        sys.stdout.write('$APP_STRIP_NAME = %s\n' % app_strip_name)
+        sys.stdout.write('$APP_DIR_NAME   = %s\n' % app_dir_name)
+        
+        cwd = os.getcwd()
+        
+        if os.path.isdir(app_dir_name):
+            sys.stdout.write(' - Error. Directory %s already exists.\n' % app_dir_name)
+        os.mkdir(app_dir_name)
+        verbose = True
+
+        def _replace_dir_name(src):
+            src = src.replace(app_template_dir_name, app_dir_name)
+            src = src.replace(app_template_module_file_name, app_module_file_name)
+            return src
+
+        def _replace_content(src):
+            src = src.replace(app_template_name, app_name)
+            src = src.replace(app_template_dir_name, app_dir_name)
+            src = src.replace(app_template_strip_name, app_strip_name)
+            src = src.replace(app_template_module_file_name, app_module_file_name)
+            src = src.replace(app_template_module_name, app_module_name)
+            return src
+            
+
+        def _dir_copy(src, dst):
+            if verbose: sys.stdout.write(' - src is %s.\n - changing to %s\n' % (src, dst))
+            os.chdir(dst)
+            for s in os.listdir(src):
+                src_p = os.path.join(src, s)
+                if verbose: sys.stdout.write(' - parsing %s\n' % src_p)
+
+                if os.path.isdir(src_p):
+                    sys.stdout.write(' - %s is directory.\n' % src_p)
+                    dir_name = _replace_dir_name(s)
+                    os.mkdir(dir_name)
+                    _dir_copy(src_p, dir_name)
+                elif os.path.isfile(src_p):
+                    sys.stdout.write(' - %s is file.\n' % src_p)
+                    src_f = open(src_p, 'r')
+                    dst_f = open(_replace_dir_name(s), 'w')
+                    for line in src_f:
+                        dst_f.write(_replace_content(line))
+                    dst_f.close()
+
+        _dir_copy(template_dir, app_dir_name)
+
+
+        
         return 0

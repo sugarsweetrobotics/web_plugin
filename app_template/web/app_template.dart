@@ -22,7 +22,7 @@ class AppTemplate extends PolymerElement {
   void onBack(var e, var d) {
     ConfirmDialog dlg = $$('#message-dlg');
     dlg.eventListener.ok.add((var dlg_) {
-      html.window.location.assign('http://${Uri.base.host}:${Uri.base.port}');
+      html.window.location.href='http://${Uri.base.host}:${Uri.base.port}';
     });
     dlg.show('Confirm', 'Really exit from Setting Manager?');
   }

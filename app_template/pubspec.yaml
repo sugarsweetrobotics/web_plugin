@@ -1,6 +1,6 @@
-name: settingmanager
-version: 0.1.0
-description: wasanbon Web Service manager
+name: apptemplate
+version: 0.0.1
+description: short description
 dependencies:
   browser: any
   polymer: 1.0.0-rc.2
