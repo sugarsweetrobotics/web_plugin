@@ -9,6 +9,11 @@ import 'package:polymer/polymer.dart';
 import 'package:wasanbon_elements/wasanbon_toolbar.dart';
 import 'package:wasanbon_elements/message_dialog.dart';
 
+import 'package:wasanbon_xmlrpc/wasanbon_xmlrpc.dart' as wasanbon;
+
+/// Global object for calling Remote Procedure Call for Wasanbon Server.
+wasanbon.WasanbonRPC rpc;
+
 @PolymerRegister('app-template')
 class AppTemplate extends PolymerElement {
 
@@ -24,6 +29,6 @@ class AppTemplate extends PolymerElement {
     dlg.eventListener.ok.add((var dlg_) {
       html.window.location.href='http://${Uri.base.host}:${Uri.base.port}';
     });
-    dlg.show('Confirm', 'Really exit from Setting Manager?');
+    dlg.show('Confirm', 'Really exit from App Template?');
   }
 }
