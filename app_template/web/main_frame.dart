@@ -1,6 +1,6 @@
 
-@HtmlImport('app-template.html')
-library app_template;
+@HtmlImport('main_frame.html')
+library main_frame;
 
 import 'dart:html' as html;
 import 'package:web_components/web_components.dart' show HtmlImport;
@@ -14,13 +14,13 @@ import 'package:wasanbon_xmlrpc/wasanbon_xmlrpc.dart' as wasanbon;
 /// Global object for calling Remote Procedure Call for Wasanbon Server.
 wasanbon.WasanbonRPC rpc;
 
-@PolymerRegister('app-template')
-class AppTemplate extends PolymerElement {
+@PolymerRegister('main-frame')
+class MainFrame extends PolymerElement {
 
-  AppTemplate.created() : super.created();
-
+  MainFrame.created() : super.created();
+  
   void attached() {
-    $$('#toolbar').onBack = this.onBack;
+    ($$('#toolbar') as WasanbonToolbar).onBack = this.onBack;
   }
 
   @reflectable

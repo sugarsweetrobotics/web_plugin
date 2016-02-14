@@ -130,7 +130,7 @@ class ResourceManager(rend.Page):
                 self.putChild(file, Page(os.path.join(self.static_dir, file)))
 
     def renderHTTP(self, ctx):
-        #return self._index
-        filename = os.path.join(self.static_dir, 'index.html')
-        return open(filename, 'r').read()
+        return self._index
+        #filename = os.path.join(self.static_dir, 'index.html')
+        #return open(filename, 'r').read()
         
