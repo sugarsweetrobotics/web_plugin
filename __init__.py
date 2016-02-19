@@ -44,6 +44,8 @@ class Plugin(PluginFunction):
 
         sys.stdout.write('# Starting Web Application in %s\n' % directory)
 
+        if not os.path.isdir(pid_dir):
+            os.mkdir(pid_dir)
         pid_file = os.path.join(pid_dir, 'pid')
         if os.path.isfile(pid_file):
             os.remove(pid_file)
@@ -72,7 +74,9 @@ class Plugin(PluginFunction):
         if not os.path.isdir(directory):
             directory = os.path.join(os.getcwd(), directory)
             if not os.path.isdir(directory):
-                raise wasanbon.InvalidArgumentException()
+                sys.stdout.write('%s not found\n' % directory)
+                #raise wasanbon.InvalidArgumentException()
+                os.mkdir(directory)
 
         work_directory = directory
         self.res = resource.ResourceManager(directory)
