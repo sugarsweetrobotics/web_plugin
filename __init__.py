@@ -220,15 +220,16 @@ class Plugin(PluginFunction):
         if app_name.endswith('.zip'):
             app_name = app_name[:-4]
 
+        if app_name == 'all':
+            all = True
+        else:
+            all = False
+
+        force = options.force_flag
+
         appdist = options.target
         if appdist is None:
             appdist = os.path.join(wasanbon.home_path, 'web', 'applications')
-
-        package_path = options.input
-        if package_path is None:
-            package_path = os.path.join(package_dir, app_name +'.zip')
-
-        force = options.force_flag
 
         package_names = self.get_packages(package_dir)
         application_names = self.get_applications(appdist)
@@ -238,43 +239,58 @@ class Plugin(PluginFunction):
         if not os.path.isfile(style_file_path):
             import shutil
             shutil.copy(os.path.join(__path__[0], 'styles', style_file), style_file_path)
-        if not os.path.isfile(package_path):
-            sys.stdout.write('# Can not find package.\n')
 
-        # Check if Web Application is already installed or not
-        #if not app_name in package_names:
-        #    sys.stdout.write('''# Argument '%s' is not ready to install.\n
-        # Place .zip package file in the packages package_dir in %s''' % (app_name, package_dir))
-        #    return -1
 
-        # Check if Web Application is already installed or not
-        if app_name in application_names:
-            sys.stdout.write('''# '%s' is already installed.\n''' % (app_name))
+        def install_app(app_name):
+            # Check if Web Application is already installed or not
+            #if not app_name in package_names
+            #    sys.stdout.write('''# Argument '%s' is not ready to install.\n
+            # Place .zip package file in the packages package_dir in %s''' % (app_name, package_dir))
+            #    return -1
 
-            if not force:
-                sys.stdout.write('# Add -f option to force installing.\n')
-                return -1
+            package_path = options.input
+            if package_path is None:
+                package_path = os.path.join(package_dir, app_name +'.zip')
+            if not os.path.isfile(package_path):
+                sys.stdout.write('# Can not find package (%s).\n' % package_path)
+
+
+            # Check if Web Application is already installed or not
+            if app_name in application_names:
+                sys.stdout.write('''# '%s' is already installed.\n''' % (app_name))
+                
+                if not force:
+                    sys.stdout.write('# Add -f option to force installing.\n')
+                    return -1
             
-            sys.stdout.write('# Removing installed %s application\n' % app_name)
-            import shutil
-            #os.removedirs(os.path.join(appdist, app_name))
-            shutil.rmtree(os.path.join(appdist, app_name))
+                sys.stdout.write('# Removing installed %s application\n' % app_name)
+                import shutil
+                #os.removedirs(os.path.join(appdist, app_name))
+                shutil.rmtree(os.path.join(appdist, app_name))
 
-        sys.stdout.write('# Installing %s.\n' % (app_name))
+            sys.stdout.write('# Installing %s.\n' % (app_name))
 
-        import zipfile
-        z = zipfile.ZipFile(package_path)
+            import zipfile
+            z = zipfile.ZipFile(package_path)
 
-        cwd = os.getcwd()
-        os.chdir(appdist)
+            cwd = os.getcwd()
+            os.chdir(appdist)
 
-        for n in z.namelist():
-            if verbose:
-                sys.stdout.write(' - %s\n' % n)
-            z.extract(n)
+            for n in z.namelist():
+                if verbose: sys.stdout.write(' - %s\n' % n)
+                z.extract(n)
 
 
-        os.chdir(cwd)
+            os.chdir(cwd)
+
+        if app_name == 'all':
+            apps = package_names
+        else:
+            apps = [app_name]
+
+        for app in apps:
+            install_app(app)
+
         return 0
 
     @manifest
