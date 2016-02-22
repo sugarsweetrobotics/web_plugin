@@ -7,10 +7,14 @@ class AdminPackagePlugin(PluginObject):
     def __init__(self):
         PluginObject.__init__(self, 'adminPackage')
 
-    def list(self):
-        self.debug('list()')
+    def list(self, running):
+        self.debug('list(running=%s)' % running)
         try:
-            stdout = check_output('package', 'list', '-l')
+            sub = ['package', 'list', '-l']
+            if running:
+                sub = sub + ['-r']
+            stdout = check_output(*sub)
+
             return self.return_value(True, '', (stdout))
         except Exception, ex:
             traceback.print_exc()

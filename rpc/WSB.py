@@ -113,24 +113,6 @@ def getPackageRTC(pkg, rtc):
     return d
 
 def runDefaultSystem(pkg):
-    dir = __check_output('package', 'directory', pkg).strip()
-    cwd = os.getcwd()
-    os.chdir(dir)
-    sub = ['system', 'run', '-v'] 
-    stdout = __mgr_call(*sub)
-    os.chdir(cwd)
-    start_time = time.time()
-    timeout = 15
-    while True:
-        running = getRunningPackages()
-        print 'running-', running
-        if running:
-            if pkg in running:
-                return 0
-        diff_time = time.time() - start_time
-        if diff_time > timeout:
-            return -2
-
     return -1
 
 def terminateSystem(pkg):

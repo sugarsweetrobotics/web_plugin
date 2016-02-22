@@ -11,6 +11,7 @@ from files import *
 from setting import *
 from mgrRtc import *
 from mgrRepository import *
+from mgrSystem import *
 from adminPackage import *
 from adminRepository import *
 
@@ -29,6 +30,7 @@ class RpcManager(xmlrpc.XMLRPC):
         self.add_plugin(ProcessesPlugin())
         self.add_plugin(MgrRtcPlugin())
         self.add_plugin(MgrRepositoryPlugin())
+        self.add_plugin(MgrSystemPlugin())
         self.add_plugin(AdminPackagePlugin())
         self.add_plugin(AdminRepositoryPlugin())
         self.add_plugin(NameServicePlugin())
@@ -146,18 +148,6 @@ class RpcManager(xmlrpc.XMLRPC):
 
     def xmlrpc_system_list(self, pkg):
         res = WSB.getSystemList(pkg)
-        return [True, res]
-
-    def xmlrpc_run_default_system(self, pkg):
-        res = WSB.runDefaultSystem(pkg)
-        return [True, res]
-
-    def xmlrpc_terminate_system(self, pkg):
-        res = WSB.terminateSystem(pkg)
-        return [True, res]
-
-    def xmlrpc_system_run(self, pkg):
-        res = WSB.runSystem(pkg)
         return [True, res]
 
     def xmlrpc_misc_send_code(self, code):
