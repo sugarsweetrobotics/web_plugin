@@ -14,6 +14,7 @@ from mgrRepository import *
 from mgrSystem import *
 from adminPackage import *
 from adminRepository import *
+from wsconverter import *
 
 class RpcManager(xmlrpc.XMLRPC):
     """
@@ -34,6 +35,7 @@ class RpcManager(xmlrpc.XMLRPC):
         self.add_plugin(AdminPackagePlugin())
         self.add_plugin(AdminRepositoryPlugin())
         self.add_plugin(NameServicePlugin())
+        self.add_plugin(WSConverterPlugin())
 
         if not directory:
             directory = os.getcwd()
@@ -45,9 +47,12 @@ class RpcManager(xmlrpc.XMLRPC):
 
 
     def add_plugin(self, plugin_obj):
+        except_functions = ['debug', 'return_value']
         for atr_name in dir(plugin_obj):
             attribute = getattr(plugin_obj, atr_name)
             if atr_name.startswith('_'):
+                continue
+            elif atr_name in except_functions:
                 continue
 
             if type(attribute) == types.MethodType:
