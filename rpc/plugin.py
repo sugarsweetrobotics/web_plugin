@@ -25,7 +25,7 @@ def call(*args, **kwargs):
         cmd.append(arg)
     if sys.platform == 'win32':
         shell = True
-    sys.stdout.write('check_output: %s\n' % str(cmd))
+    sys.stdout.write('call: %s\n' % str(cmd))
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
     #p.wait()
     #return p.stdout
