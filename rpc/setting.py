@@ -67,7 +67,10 @@ class SettingPlugin(PluginObject):
             cmd = ['web', 'applications']
             stdout = check_output(*cmd).strip()
             import yaml
-            return self.return_value(True, '', yaml.load(stdout))
+            d = yaml.load(stdout)
+            if not d:
+                d = []
+            return self.return_value(True, '', d)
         except Exception, ex:
             traceback.print_exc()
             return self.return_value(False, 'Exception occured %s' % str(ex), '')

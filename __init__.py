@@ -25,7 +25,79 @@ class Plugin(PluginFunction):
         sys.stdout.write(' - SIGINT captured.\n')
         from twisted.internet import reactor
         reactor.stop()
-    
+
+
+    @property
+    def web_dir(self):
+        return os.path.join(wasanbon.home_path, 'web')
+
+    @property
+    def app_dir(self):
+        return os.path.join(self.web_dir, 'applications')
+
+    @property
+    def pack_dir(self):
+        return os.path.join(self.web_dir, 'packages')
+
+    @manifest
+    def init(self, args):
+        options, argv = self.parse_args(args[:])
+        verbose = options.verbose_flag # This is default option
+
+        if not os.path.isdir(self.web_dir):
+            os.mkdir(self.web_dir)
+        
+        if not os.path.isdir(self.app_dir):
+            os.mkdir(self.app_dir)
+        
+        if not os.path.isdir(self.pack_dir):
+            os.mkdir(self.pack_dir)
+
+        style_file = 'index.css'
+        style_file_path = os.path.join(self.app_dir, style_file)
+        if not os.path.isfile(style_file_path):
+            import shutil
+            shutil.copy(os.path.join(__path__[0], 'styles', style_file), style_file_path)
+
+
+    def download_from_appshare(self, appname, version=None):
+        dic = self.get_app_dict()
+        if not appname in dic.keys():
+            sys.stdout.write('Error. %s can not be found in AppShare.\n' % appname)
+            return -1
+
+        if version:
+            if not version in dic[appname].keys():
+                sys.stdout.write('Error. %s version %s can not be found in AppShare.\n' % (appname, version))
+                return -2
+
+        else:
+            vs = dic[appname].keys()
+            vs.sort()
+            version = vs[-1]
+
+        url = self.appshare_url + dic[appname][version]['url']
+        sys.stdout.write('# Downloading %s-%s from url (%s)\n' % (appname, version, url))
+        
+        import urllib2
+        req = urllib2.Request(url)
+        response = urllib2.urlopen(req)
+        page_content = response.read()
+        
+        target_file = os.path.join(self.pack_dir, dic[appname][version]['url'])
+        open(target_file, 'w').write(page_content)
+        return 0
+
+    @manifest
+    def download_appshare(self, args):
+        self.parser.add_option('-s', '--specify-version', help='Download application from AppShare', default=None, dest='version')
+        options, argv = self.parse_args(args[:])
+        verbose = options.verbose_flag # This is default option
+        version = options.version
+        
+        wasanbon.arg_check(argv, 4)
+        appname = argv[3]
+        return self.download_from_appshare(appname, version)
 
     @manifest
     def start(self, args):
@@ -139,49 +211,44 @@ class Plugin(PluginFunction):
         return 0
         
 
-    def get_packages(self, directory='packages'):
+    def get_packages(self, without_version=False):
         """ List packages """
-        #packdir = os.path.join(__path__[0], directory)
-        if not os.path.isdir(directory):
-            os.makedirs(directory)
         package_names = []
-        for f in os.listdir(directory):
+        for f in os.listdir(self.pack_dir):
             if f.endswith('.zip'):
-                package_names.append(f[0:-4])
+                pn = f[0:-4]
+                if without_version:
+                    pn = pn.split('-')[0]
+                package_names.append(pn)
 
         return package_names
 
-    def get_applications(self, appdist):
+    def get_applications(self):
         """ List applications """
 
-        if not os.path.isdir(appdist):
-            os.makedirs(appdist)
-        package_names = []
-        for f in os.listdir(appdist):
+        app_names = []
+        for f in os.listdir(self.app_dir):
 
-            path = os.path.join(appdist, f)
+            path = os.path.join(self.app_dir, f)
             if os.path.isdir(path):
-                package_names.append(f)
-        return package_names
+                app_names.append(f)
+        return app_names
 
     @manifest
     def package_dir(self, args):
         #self.parser.add_option('-d', '--directory', help='Set Static File Directory Tree Root', default=None, dest='directory')
         options, argv = self.parse_args(args[:])
         verbose = options.verbose_flag # This is default option
-        sys.stdout.write('%s\n' % os.path.join(__path__[0], 'packages'))
+        sys.stdout.write('%s\n' % self.pack_dir)
         return 0
     
     @manifest
     def packages(self, args):
-        self.parser.add_option('-d', '--directory', help='Set Static File Directory Tree Root', default=None, dest='directory')
+        #self.parser.add_option('-d', '--directory', help='Set Static File Directory Tree Root', default=None, dest='directory')
         options, argv = self.parse_args(args[:])
         verbose = options.verbose_flag # This is default option
-        directory = options.directory
-        if directory is None:
-            directory = os.path.join(__path__[0], 'packages')
-
-        package_names = self.get_packages(directory)
+        #directory = options.directory
+        package_names = self.get_packages()
         sys.stdout.write('# Install ready packages:\n')
         for p in package_names:
             sys.stdout.write(' - %s\n' % p)
@@ -189,14 +256,9 @@ class Plugin(PluginFunction):
 
     @manifest
     def applications(self, args):
-        self.parser.add_option('-d', '--directory', help='Set Static File Directory Tree Root', default=None, dest='directory')
         options, argv = self.parse_args(args[:])
         verbose = options.verbose_flag # This is default option
-        appdist = options.directory
-        if appdist is None:
-            appdist = os.path.join(wasanbon.home_path, 'web', 'applications')
-
-        package_names = self.get_applications(appdist)
+        package_names = self.get_applications()
         sys.stdout.write('# Installed Applications:\n')
         for p in package_names:
             sys.stdout.write(' - %s\n' % p)
@@ -205,93 +267,80 @@ class Plugin(PluginFunction):
     @manifest
     def install(self, args):
         """ install application """
-        self.parser.add_option('-d', '--directory', help='Set Package Archive Directory Root', default=None, dest='directory')
-        self.parser.add_option('-t', '--target', help='Set Application File Directory Root', default=None, dest='target')
-        self.parser.add_option('-i', '--input', help='Set Input Package name', default=None, dest='input')
+        self.parser.add_option('-s', '--specify-version', help='Specify Version of App', default=None, dest='version')
         self.parser.add_option('-f', '--force', help='Force install', default=False, action='store_true', dest='force_flag')
         options, argv = self.parse_args(args[:], self._print_alternative_packages)
         verbose = options.verbose_flag # This is default option
-        package_dir = options.directory
-        if package_dir == None:
-            package_dir = os.path.join(__path__[0], 'packages')
-
-        wasanbon.arg_check(argv, 4)
-        app_name = argv[3]
-        if app_name.endswith('.zip'):
-            app_name = app_name[:-4]
-
-        if app_name == 'all':
-            all = True
-        else:
-            all = False
-
+        version = options.version
         force = options.force_flag
 
-        appdist = options.target
-        if appdist is None:
-            appdist = os.path.join(wasanbon.home_path, 'web', 'applications')
+        wasanbon.arg_check(argv, 4)
+        appname = argv[3]
 
-        package_names = self.get_packages(package_dir)
-        application_names = self.get_applications(appdist)
-
-        style_file = 'index.css'
-        style_file_path = os.path.join(appdist, style_file)
-        if not os.path.isfile(style_file_path):
-            import shutil
-            shutil.copy(os.path.join(__path__[0], 'styles', style_file), style_file_path)
-
-
-        def install_app(app_name):
-            # Check if Web Application is already installed or not
-            #if not app_name in package_names
-            #    sys.stdout.write('''# Argument '%s' is not ready to install.\n
-            # Place .zip package file in the packages package_dir in %s''' % (app_name, package_dir))
-            #    return -1
-
-            package_path = options.input
-            if package_path is None:
-                package_path = os.path.join(package_dir, app_name +'.zip')
-            if not os.path.isfile(package_path):
-                sys.stdout.write('# Can not find package (%s).\n' % package_path)
-
-
-            # Check if Web Application is already installed or not
-            if app_name in application_names:
-                sys.stdout.write('''# '%s' is already installed.\n''' % (app_name))
-                
-                if not force:
-                    sys.stdout.write('# Add -f option to force installing.\n')
-                    return -1
-            
-                sys.stdout.write('# Removing installed %s application\n' % app_name)
-                import shutil
-                #os.removedirs(os.path.join(appdist, app_name))
-                shutil.rmtree(os.path.join(appdist, app_name))
-
-            sys.stdout.write('# Installing %s.\n' % (app_name))
-
-            import zipfile
-            z = zipfile.ZipFile(package_path)
-
-            cwd = os.getcwd()
-            os.chdir(appdist)
-
-            for n in z.namelist():
-                if verbose: sys.stdout.write(' - %s\n' % n)
-                z.extract(n)
-
-
-            os.chdir(cwd)
-
-        if app_name == 'all':
-            apps = package_names
+        if appname == 'all':
+            apps = []
+            for p in self.get_packages():
+                n = p.split('-')[0]
+                if not n in apps:
+                    apps.append(n)
         else:
-            apps = [app_name]
+            apps = [appname]
 
         for app in apps:
-            install_app(app)
+            self.install_app(app, version, force)
 
         return 0
+
+
+    def install_app(self, appname, version=None, force=False, verbose=False):
+        # Check if Web Application is already installed or not
+        #if not app_name in package_names
+        #    sys.stdout.write('''# Argument '%s' is not ready to install.\n
+        # Place .zip package file in the packages package_dir in %s''' % (app_name, package_dir))
+        #    return -1
+
+        if version is None:
+            versions = []
+            for f in os.listdir(self.pack_dir):
+                if f.startswith(appname) and f.endswith('.zip'):
+                    v = f.split('-')[-1][:-4]
+                    versions.append(v)
+            versions.sort()
+            version = versions[-1]
+        
+        package_path = os.path.join(self.pack_dir, appname + '-' + version + '.zip')
+        if not os.path.isfile(package_path):
+            sys.stdout.write('# Can not find package (%s).\n' % package_path)
+            return -1
+
+
+        # Check if Web Application is already installed or not
+        if appname in self.get_applications():
+            sys.stdout.write('''# '%s' is already installed.\n''' % (appname))
+                
+            if not force:
+                sys.stdout.write('# Add -f option to force installing.\n')
+                return -1
+            
+            sys.stdout.write('# Removing installed %s application\n' % appname)
+            import shutil
+            shutil.rmtree(os.path.join(self.app_dir, appname))
+
+        sys.stdout.write('# Installing %s.\n' % (appname))
+
+        import zipfile
+        z = zipfile.ZipFile(package_path)
+
+        cwd = os.getcwd()
+        os.chdir(self.app_dir)
+
+        for n in z.namelist():
+            if verbose: sys.stdout.write(' - %s\n' % n)
+            z.extract(n)
+
+
+        os.chdir(cwd)
+
 
     @manifest
     def uninstall(self, args):
@@ -299,21 +348,14 @@ class Plugin(PluginFunction):
         options, argv = self.parse_args(args[:], self._print_alternative_packages)
         verbose = options.verbose_flag # This is default option
         
-        package_dir = os.path.join(__path__[0], 'packages')
-        appdist = os.path.join(wasanbon.home_path, 'web', 'applications')
+        appdist = self.app_dir
 
         wasanbon.arg_check(argv, 4)
 
         app_name = argv[3]
 
-        package_names = self.get_packages(package_dir)
-        application_names = self.get_applications(appdist)
-
-        style_file = 'index.css'
-        style_file_path = os.path.join(appdist, style_file)
-        if not os.path.isfile(style_file_path):
-            import shutil
-            shutil.copy(os.path.join(__path__[0], 'styles', style_file), style_file_path)
+        package_names = self.get_packages()
+        application_names = self.get_applications()
 
         if app_name in application_names:
             sys.stdout.write('''# Removing '%s'.\n''' % (app_name))
@@ -322,6 +364,92 @@ class Plugin(PluginFunction):
             #os.removedirs(os.path.join(appdist, app_name))
             shutil.rmtree(os.path.join(appdist, app_name))
 
+        return 0
+
+
+    @manifest
+    def upload_appshare(self, args):
+        """ Start Web Server """
+        self.parser.add_option('-d', '--description', help='Set Description', default="", dest='description')
+        #self.parser.add_option('-p', '--port', help='Set TCP Port number for web server', type='int', default=8000, dest='port')
+        options, argv = self.parse_args(args[:])
+        verbose = options.verbose_flag # This is default option
+        description = options.description
+        wasanbon.arg_check(argv, 4)
+        filepath = argv[3]
+        
+        if not os.path.isfile(filepath):
+            sys.stdout.write(' - file (%s) not found.\n')
+        
+        import apps
+        apps.update_cache(url=self.applist_url)
+        apps.upload(filepath, user, password, self.applist_filename, hostname=self.upload_host, dir=self.upload_dir, description=description)
+        return 0
+
+    @property
+    def applist_filename(self):
+        dic = self.get_setting_dic()
+        return dic['list_filename']
+
+    @property
+    def applist_url(self):
+        return self.appshare_url + self.applist_filename
+        
+    @property
+    def appshare_url(self):
+        dic = self.get_setting_dic()
+        url= dic['appshare_url']
+        if not url.endswith('/'):
+            url = url + '/'
+        return url
+
+    @property
+    def upload_host(self):
+        dic = self.get_setting_dic()
+        return dic['upload_host']
+
+    @property
+    def upload_dir(self):
+        dic = self.get_setting_dic()
+        return dic['upload_dir']
+
+    def get_setting_dic(self):
+        user = None
+        password = None
+        dic = {}
+        if not os.path.isfile('setting.yaml') and not os.path.isfile(os.path.join(wasanbon.get_wasanbon_home(), 'web', 'setting.yaml')):
+            dic['user'] = None
+            dic['password'] = None
+            dic['list_filename'] = 'application_list.html'
+            dic['list_url'] = 'http://sugarsweetrobotics.com/pub/wasanbon/web/applications/'
+            dic['upload_host'] = None
+            dic['upload_dir'] = None
+        else:
+            import yaml
+            if os.path.isfile('setting.yaml'):
+                dic = yaml.load(open('setting.yaml', 'r').read())
+            else:
+                dic = yaml.load(open(os.path.join(wasanbon.get_wasanbon_home(), 'web', 'setting.yaml'), 'r').read())
+                pass
+        return dic
+
+    def get_app_dict(self):
+        print self.applist_url
+        import apps
+        apps.update_cache(url=self.applist_url)
+        dic = apps.cache_to_dict()
+        return dic
+        
+    @manifest
+    def list_appshare(self, args):
+        """ List Applications in AppShare """
+        #self.parser.add_option('-d', '--directory', help='Set Static File Directory Tree Root', default=None, dest='directory')
+        #self.parser.add_option('-p', '--port', help='Set TCP Port number for web server', type='int', default=8000, dest='port')
+        options, argv = self.parse_args(args[:])
+        verbose = options.verbose_flag # This is default option
+        dic = self.get_app_dict()
+        import yaml
+        print yaml.dump(dic, default_flow_style=False)
         return 0
     
     @manifest
@@ -395,6 +523,6 @@ class Plugin(PluginFunction):
 
         _dir_copy(template_dir, app_dir_name)
 
-
-        
         return 0
+
+
