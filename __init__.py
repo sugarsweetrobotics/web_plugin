@@ -152,7 +152,7 @@ class Plugin(PluginFunction):
 
         work_directory = directory
         self.res = resource.ResourceManager(directory)
-        self.res.putChild('RPC', manager.RpcManager(directory=work_directory));
+        self.res.putChild('RPC', manager.RpcManager(directory=work_directory, verbose=verbose));
         self.site = appserver.NevowSite(self.res)
         reactor.listenTCP(port, self.site)
         reactor.run()
@@ -315,16 +315,19 @@ class Plugin(PluginFunction):
 
 
         # Check if Web Application is already installed or not
-        if appname in self.get_applications():
-            sys.stdout.write('''# '%s' is already installed.\n''' % (appname))
+        for an in self.get_applications():
+            if an.split('-')[0] != appname:
+                continue
+
+            sys.stdout.write('''# '%s' is already installed.\n''' % (an))
                 
             if not force:
                 sys.stdout.write('# Add -f option to force installing.\n')
                 return -1
             
-            sys.stdout.write('# Removing installed %s application\n' % appname)
+            sys.stdout.write('# Removing installed %s application\n' % an)
             import shutil
-            shutil.rmtree(os.path.join(self.app_dir, appname))
+            shutil.rmtree(os.path.join(self.app_dir, an))
 
         sys.stdout.write('# Installing %s.\n' % (appname))
 
@@ -338,6 +341,13 @@ class Plugin(PluginFunction):
             if verbose: sys.stdout.write(' - %s\n' % n)
             z.extract(n)
 
+
+        print z.namelist()[0]
+        if z.namelist()[0].find('-') < 0:
+            name = z.namelist()[0]
+            if name.endswith('/'):
+                name = name[:-1]
+            os.rename(z.namelist()[0], name + '-' + version)
 
         os.chdir(cwd)
 
@@ -353,16 +363,21 @@ class Plugin(PluginFunction):
         wasanbon.arg_check(argv, 4)
 
         app_name = argv[3]
+        if app_name.find('-') >= 0:
+            app_name = app_name.split('-')[0]
 
         package_names = self.get_packages()
         application_names = self.get_applications()
 
-        if app_name in application_names:
-            sys.stdout.write('''# Removing '%s'.\n''' % (app_name))
+        for an in application_names:
+            if app_name != an.split('-')[0]:
+                continue
+
+            sys.stdout.write('''# Removing '%s'.\n''' % (an))
             
             import shutil
             #os.removedirs(os.path.join(appdist, app_name))
-            shutil.rmtree(os.path.join(appdist, app_name))
+            shutil.rmtree(os.path.join(appdist, an))
 
         return 0
 
@@ -383,6 +398,9 @@ class Plugin(PluginFunction):
         
         import apps
         apps.update_cache(url=self.applist_url)
+        dic = self.get_setting_dic()
+        user = dic['user']
+        password = dic['password']
         apps.upload(filepath, user, password, self.applist_filename, hostname=self.upload_host, dir=self.upload_dir, description=description)
         return 0
 
@@ -434,7 +452,7 @@ class Plugin(PluginFunction):
         return dic
 
     def get_app_dict(self):
-        print self.applist_url
+        # print self.applist_url
         import apps
         apps.update_cache(url=self.applist_url)
         dic = apps.cache_to_dict()

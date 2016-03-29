@@ -15,6 +15,7 @@ from mgrSystem import *
 from adminPackage import *
 from adminRepository import *
 from wsconverter import *
+from appshare import *
 
 class RpcManager(xmlrpc.XMLRPC):
     """
@@ -22,20 +23,21 @@ class RpcManager(xmlrpc.XMLRPC):
     """
     isLeaf = True
 
-    def __init__(self, directory=None):
+    def __init__(self, directory=None, verbose=False):
         xmlrpc.XMLRPC.__init__(self, allowNone=True)
 
-        self.add_plugin(MiscPlugin())
-        self.add_plugin(SettingPlugin())
-        self.add_plugin(FilesPlugin())
-        self.add_plugin(ProcessesPlugin())
-        self.add_plugin(MgrRtcPlugin())
-        self.add_plugin(MgrRepositoryPlugin())
-        self.add_plugin(MgrSystemPlugin())
-        self.add_plugin(AdminPackagePlugin())
-        self.add_plugin(AdminRepositoryPlugin())
-        self.add_plugin(NameServicePlugin())
-        self.add_plugin(WSConverterPlugin())
+        self.add_plugin(MiscPlugin(), verbose=verbose)
+        self.add_plugin(SettingPlugin(), verbose=verbose)
+        self.add_plugin(FilesPlugin(), verbose=verbose)
+        self.add_plugin(ProcessesPlugin(), verbose=verbose)
+        self.add_plugin(MgrRtcPlugin(), verbose=verbose)
+        self.add_plugin(MgrRepositoryPlugin(), verbose=verbose)
+        self.add_plugin(MgrSystemPlugin(), verbose=verbose)
+        self.add_plugin(AdminPackagePlugin(), verbose=verbose)
+        self.add_plugin(AdminRepositoryPlugin(), verbose=verbose)
+        self.add_plugin(NameServicePlugin(), verbose=verbose)
+        self.add_plugin(WSConverterPlugin(), verbose=verbose)
+        self.add_plugin(AppsharePlugin(), verbose=verbose)
 
         if not directory:
             directory = os.getcwd()
@@ -46,8 +48,9 @@ class RpcManager(xmlrpc.XMLRPC):
         self.old_directory = os.getcwd()
 
 
-    def add_plugin(self, plugin_obj):
+    def add_plugin(self, plugin_obj, verbose=False):
         except_functions = ['debug', 'return_value']
+        print '# Plugin %s' % plugin_obj.name
         for atr_name in dir(plugin_obj):
             attribute = getattr(plugin_obj, atr_name)
             if atr_name.startswith('_'):
@@ -57,7 +60,7 @@ class RpcManager(xmlrpc.XMLRPC):
 
             if type(attribute) == types.MethodType:
                 func_name = 'xmlrpc_' + plugin_obj.name + '_' + atr_name
-                print func_name
+                if verbose: print '# -Function: %s' %func_name
                 setattr(self, func_name, attribute)
 
     def pre_rpc(self):

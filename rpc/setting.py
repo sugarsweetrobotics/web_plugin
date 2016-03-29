@@ -75,12 +75,14 @@ class SettingPlugin(PluginObject):
             traceback.print_exc()
             return self.return_value(False, 'Exception occured %s' % str(ex), '')
         
-    def install_package(self, packageName, force):
-        self.debug('install_package(%s, %s)' % (packageName, force))
+    def install_package(self, packageName, force, version):
+        self.debug('install_package(%s, %s, %s)' % (packageName, force, version))
         try:
             cmd = ['web', 'install', packageName]
             if force:
                 cmd = cmd + ['-f']
+            if len(version) > 0:
+                cmd = cmd + ['-s', version]
             stdout = check_output(*cmd).strip()
             return self.return_value(True, '', True)
         except Exception, ex:
