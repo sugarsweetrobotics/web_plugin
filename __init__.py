@@ -20,7 +20,7 @@ class Plugin(PluginFunction):
 
     def sigusr1_isr(self, signal, stack):
         from twisted.internet import reactor
-
+        pass
     def sigint_isr(self, signal, stack):
         sys.stdout.write(' - SIGINT captured.\n')
         from twisted.internet import reactor
@@ -58,7 +58,10 @@ class Plugin(PluginFunction):
         if not os.path.isfile(style_file_path):
             import shutil
             shutil.copy(os.path.join(__path__[0], 'styles', style_file), style_file_path)
-
+        self.download_from_appshare('Apps')
+        self.install_app('Apps', verbose=verbose)
+        self.download_from_appshare('Setting')
+        self.install_app('Setting', verbose=verbose)
 
     def download_from_appshare(self, appname, version=None):
         dic = self.get_app_dict()
@@ -82,10 +85,19 @@ class Plugin(PluginFunction):
         import urllib2
         req = urllib2.Request(url)
         response = urllib2.urlopen(req)
-        page_content = response.read()
-        
         target_file = os.path.join(self.pack_dir, dic[appname][version]['url'])
-        open(target_file, 'w').write(page_content)
+        if sys.platform == 'win32':
+            CHUNK = 16*1024
+            fout = open(target_file, 'wb')
+            while True:
+                chunk =  response.read(CHUNK)
+                if not chunk: break
+                fout.write(chunk)
+            pass
+        else:
+            page_content = response.read()
+            open(target_file, 'w').write(page_content)
+            pass
         return 0
 
     @manifest
@@ -138,7 +150,14 @@ class Plugin(PluginFunction):
 
 
         import signal
-        signal.signal(signal.SIGUSR1, self.sigusr1_isr) # SIGUSR1 = 30
+        
+        #if sys.platform == 'win32':
+        #    SIGUSR1 = 30
+        #else:
+        #    SIGUSR1 = signal.SIGUSR1
+        #    pass
+        
+        #signal.signal(SIGUSR1, self.sigusr1_isr) # SIGUSR1 = 30 -
         signal.signal(signal.SIGINT, self.sigint_isr) # SIGUSR1 = 30
 
         #if directory is None:
@@ -439,7 +458,7 @@ class Plugin(PluginFunction):
             dic['user'] = None
             dic['password'] = None
             dic['list_filename'] = 'application_list.html'
-            dic['list_url'] = 'http://sugarsweetrobotics.com/pub/wasanbon/web/applications/'
+            dic['appshare_url'] = 'http://sugarsweetrobotics.com/pub/wasanbon/web/applications/'
             dic['upload_host'] = None
             dic['upload_dir'] = None
         else:
