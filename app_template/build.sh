@@ -1,4 +1,5 @@
 PACKAGE_NAME=AppTemplate
+VERSION=0.0.1
 ICON_FILE=icon.png
 
 rm -rf $PACKAGE_NAME
