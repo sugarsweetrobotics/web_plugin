@@ -2,6 +2,16 @@ import os, sys
 import wasanbon
 from wasanbon.core.plugins import PluginFunction, manifest
 
+
+default_setting_dic = {
+    'user': None,
+    'password' : None,
+    'list_filename' : 'application_list.html',
+    'appshare_url': 'http://sugarsweetrobotics.com/pub/wasanbon/web/applications/',
+    'upload_host' : 'ysuga.net',
+    'upload_dir'  : '/home/ysuga/www/ssr/www2/pub/wasanbon/web/applications/'
+}
+
 class Plugin(PluginFunction):
     """ Plugin for Web interface """
     def __init__(self):
@@ -41,8 +51,11 @@ class Plugin(PluginFunction):
 
     @manifest
     def init(self, args):
+        self.parser.add_option('-f', '--force', help='Force Initialize Setting', default=False, action='store_true',  dest='force')
+        
         options, argv = self.parse_args(args[:])
         verbose = options.verbose_flag # This is default option
+        force = options.force
 
         if not os.path.isdir(self.web_dir):
             os.mkdir(self.web_dir)
@@ -58,10 +71,18 @@ class Plugin(PluginFunction):
         if not os.path.isfile(style_file_path):
             import shutil
             shutil.copy(os.path.join(__path__[0], 'styles', style_file), style_file_path)
+
+        if (not os.path.isfile(os.path.join(wasanbon.get_wasanbon_home(), 'web', 'web_setting.yaml'))) or force:
+            import yaml
+            print 'CP', yaml.dump(default_setting_dic)
+            with open(os.path.join(wasanbon.get_wasanbon_home(), 'web', 'web_setting.yaml'), 'w') as f:
+
+                f.write(yaml.dump(default_setting_dic))
+                f.close()
         self.download_from_appshare('Apps')
-        self.install_app('Apps', verbose=verbose)
+        self.install_app('Apps', force=force, verbose=verbose)
         self.download_from_appshare('Setting')
-        self.install_app('Setting', verbose=verbose)
+        self.install_app('Setting', force=force, verbose=verbose)
 
     def download_from_appshare(self, appname, version=None):
         dic = self.get_app_dict()
@@ -426,7 +447,7 @@ class Plugin(PluginFunction):
     @property
     def applist_filename(self):
         dic = self.get_setting_dic()
-        return dic['list_filename']
+        return dic.get('list_filename', '')
 
     @property
     def applist_url(self):
@@ -450,24 +471,23 @@ class Plugin(PluginFunction):
         dic = self.get_setting_dic()
         return dic['upload_dir']
 
-    def get_setting_dic(self):
+    def get_setting_dic(self, verbose=True):
         user = None
         password = None
         dic = {}
-        if not os.path.isfile('setting.yaml') and not os.path.isfile(os.path.join(wasanbon.get_wasanbon_home(), 'web', 'setting.yaml')):
-            dic['user'] = None
-            dic['password'] = None
-            dic['list_filename'] = 'application_list.html'
-            dic['appshare_url'] = 'http://sugarsweetrobotics.com/pub/wasanbon/web/applications/'
-            dic['upload_host'] = None
-            dic['upload_dir'] = None
+        if not os.path.isfile('web_setting.yaml') and not os.path.isfile(os.path.join(wasanbon.get_wasanbon_home(), 'web', 'web_setting.yaml')):
+            dic = default_setting_dic
         else:
             import yaml
-            if os.path.isfile('setting.yaml'):
-                dic = yaml.load(open('setting.yaml', 'r').read())
+            if os.path.isfile('web_setting.yaml'):
+                dic = yaml.load(open('web_setting.yaml', 'r').read())
             else:
-                dic = yaml.load(open(os.path.join(wasanbon.get_wasanbon_home(), 'web', 'setting.yaml'), 'r').read())
+                dic = yaml.load(open(os.path.join(wasanbon.get_wasanbon_home(), 'web', 'web_setting.yaml'), 'r').read())
                 pass
+
+        if dic is None:
+            if verbose: sys.stdout.write('# Invalid web_setting_file (./web_setting.yaml or ~/.wasanbon/web/web_setting.yaml\n')
+            dic = default_setting_dic
         return dic
 
     def get_app_dict(self):
